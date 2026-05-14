@@ -155,23 +155,35 @@ def get_pipeline_run(run_id: str) -> dict | None:
 
 # ── screening_results ─────────────────────────────────────────────
 
+import json
+
 def insert_screening_result(run_id: str, screening: dict) -> dict:
     db = get_db()
+
+    # Serialize to plain dict — removes any Pydantic enums or custom types
+    def _safe(val):
+        if val is None:
+            return None
+        try:
+            return json.loads(json.dumps(val, default=str))
+        except Exception:
+            return str(val)
+
     result = db.table("screening_results").insert({
-        "run_id": run_id,
-        "required_skills_score": screening.get("required_skills_score"),
-        "experience_score": screening.get("experience_score"),
-        "preferred_skills_score": screening.get("preferred_skills_score"),
-        "education_domain_score": screening.get("education_domain_score"),
-        "composite_score": screening.get("composite_score"),
-        "experience_match_rating": screening.get("experience_match_rating"),
-        "skills_analysis": screening.get("skills_analysis"),
-        "experience_analysis": screening.get("experience_analysis"),
-        "strengths": screening.get("strengths"),
-        "weaknesses": screening.get("weaknesses"),
-        "recommendation": screening.get("recommendation"),
-        "decision_justification": screening.get("decision_justification"),
-        "full_screener_output": screening,
+        "run_id":                   run_id,
+        "required_skills_score":    screening.get("required_skills_score"),
+        "experience_score":         screening.get("experience_score"),
+        "preferred_skills_score":   screening.get("preferred_skills_score"),
+        "education_domain_score":   screening.get("education_domain_score"),
+        "composite_score":          screening.get("composite_score"),
+        "experience_match_rating":  screening.get("experience_match_rating"),
+        "skills_analysis":          _safe(screening.get("skills_analysis")),
+        "experience_analysis":      _safe(screening.get("experience_analysis")),
+        "strengths":                _safe(screening.get("strengths")),
+        "weaknesses":               _safe(screening.get("weaknesses")),
+        "recommendation":           screening.get("recommendation"),
+        "decision_justification":   screening.get("decision_justification"),
+        "full_screener_output":     _safe(screening),
     }).execute()
     return result.data[0]
 
