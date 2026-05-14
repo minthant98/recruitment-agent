@@ -1,0 +1,47 @@
+# ── Orchestration ─────────────────────────────────────
+langgraph>=0.2.0
+langchain-core>=0.2.0
+
+# ── LLM ──────────────────────────────────────────────
+groq>=0.9.0
+langchain-groq>=0.1.0
+
+# ── Database ──────────────────────────────────────────
+supabase>=2.5.0
+
+# ── CV parsing ────────────────────────────────────────
+pdfplumber>=0.11.0
+python-docx>=1.1.0
+
+# ── Email ─────────────────────────────────────────────
+google-api-python-client>=2.130.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
+
+# ── Excel audit ───────────────────────────────────────
+openpyxl>=3.1.0
+
+# ── Validation & config ───────────────────────────────
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+python-dotenv>=1.0.0
+
+# ── Utilities ─────────────────────────────────────────
+tenacity>=8.3.0
+structlog>=24.1.0
+rich>=13.7.0
+
+# ── Tracing ───────────────────────────────────────────
+langsmith>=0.1.0
+
+# ── Web UI ────────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn>=0.30.0
+jinja2>=3.1.0
+python-multipart>=0.0.9
+
+# Persistent checkpointing
+langgraph-checkpoint-sqlite>=1.0.0
+
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0

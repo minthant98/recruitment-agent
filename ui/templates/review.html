@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review — {{ candidate.name if candidate else 'Candidate' }}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:       #0F1C2E;
+  --navy-mid:   #1A2E46;
+  --accent:     #3B82F6;
+  --green:      #10B981;
+  --green-bg:   #D1FAE5;
+  --green-text: #065F46;
+  --amber:      #F59E0B;
+  --amber-bg:   #FEF3C7;
+  --amber-text: #92400E;
+  --red:        #EF4444;
+  --red-bg:     #FEE2E2;
+  --red-text:   #991B1B;
+  --gray-50:    #F8FAFC;
+  --gray-100:   #F1F5F9;
+  --gray-200:   #E2E8F0;
+  --gray-400:   #94A3B8;
+  --gray-600:   #475569;
+  --text:       #0F172A;
+  --surface:    #FFFFFF;
+  --border:     #E2E8F0;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.08);
+  --radius:     12px;
+  --radius-sm:  8px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-50);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  padding-bottom: 120px;
+}
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav {
+  background: var(--navy);
+  padding: 0 2rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a { color: #aaa; font-size: 14px; text-decoration: none; transition: color 0.15s; }
+.nav-links a:hover { color: #fff; }
+.nav-right { display: flex; align-items: center; gap: 1.5rem; }
+.nav-user { color: #888; font-size: 13px; }
+.nav-badge {
+  background: #e53935; color: #fff; font-size: 11px; font-weight: 500;
+  min-width: 18px; height: 18px; border-radius: 9px; padding: 0 5px;
+  display: none; align-items: center; justify-content: center; margin-left: 6px;
+}
+.nav-logout {
+  color: #666; font-size: 13px; text-decoration: none; cursor: pointer;
+  background: none; border: none; font-family: inherit; padding: 0;
+}
+.nav-logout:hover { color: #fff; }
+
+/* ── Conflict Banner ──────────────────────────────── */
+.conflict-banner {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+  border-bottom: 2px solid #FECACA;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #991B1B;
+}
+
+/* ── Container ────────────────────────────────────── */
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 24px 0; }
+
+/* ── Back link ────────────────────────────────────── */
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--gray-400); text-decoration: none;
+  margin-bottom: 20px;
+}
+.back-link:hover { color: var(--text); }
+
+/* ── Executive Summary ────────────────────────────── */
+.exec-summary {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.exec-summary::before {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
+  border-radius: 50%;
+}
+.exec-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 24px; flex-wrap: wrap;
+}
+.exec-candidate h1 {
+  font-size: 28px; font-weight: 700;
+  letter-spacing: -0.02em; margin-bottom: 4px;
+}
+.exec-candidate .role {
+  color: rgba(255,255,255,0.6); font-size: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.exec-candidate .role span { color: rgba(255,255,255,0.3); }
+
+.exec-right { display: flex; align-items: center; gap: 20px; }
+
+.exec-badges { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.exec-badge {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm); padding: 10px 16px; min-width: 90px; gap: 4px;
+}
+.exec-badge .badge-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255,255,255,0.5);
+}
+.exec-badge .badge-value { font-size: 14px; font-weight: 700; color: white; }
+.badge-value.green { color: #34D399; }
+.badge-value.amber { color: #FCD34D; }
+.badge-value.red   { color: #F87171; }
+
+.score-big {
+  font-size: 48px; font-weight: 700;
+  letter-spacing: -0.04em; line-height: 1; color: white;
+}
+.score-big.high   { color: #34D399; }
+.score-big.medium { color: #FCD34D; }
+.score-big.low    { color: #F87171; }
+.score-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.exec-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0; }
+
+.exec-insights { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.insight-group h4 {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px;
+}
+.insight-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.insight-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+.chip-green { background: rgba(16,185,129,0.15); color: #34D399; }
+.chip-red   { background: rgba(239,68,68,0.15);  color: #F87171; }
+
+/* ── Progress Tracker ─────────────────────────────── */
+.progress-track {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 24px; margin-bottom: 20px;
+  display: flex; align-items: center; overflow-x: auto;
+}
+.progress-step {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; min-width: 90px; position: relative;
+}
+.progress-step:not(:last-child)::after {
+  content: ''; position: absolute; top: 14px;
+  left: calc(50% + 14px); width: calc(100% - 28px);
+  height: 2px; background: var(--gray-200);
+}
+.progress-step.done::after { background: var(--green); }
+.step-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; border: 2px solid var(--gray-200);
+  background: white; position: relative; z-index: 1;
+}
+.progress-step.done   .step-icon { background: var(--green); border-color: var(--green); color: white; }
+.progress-step.active .step-icon {
+  background: var(--accent); border-color: var(--accent); color: white;
+  animation: stepPulse 1.5s infinite;
+}
+.progress-step.pending .step-icon { color: var(--gray-400); }
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(59,130,246,0); }
+}
+.step-label { font-size: 11px; font-weight: 500; color: var(--gray-400); text-align: center; white-space: nowrap; }
+.progress-step.done   .step-label { color: var(--green); }
+.progress-step.active .step-label { color: var(--accent); font-weight: 600; }
+
+/* ── Cards ────────────────────────────────────────── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--gray-400);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 6px;
+}
+
+/* ── AI Narrative ─────────────────────────────────── */
+.ai-narrative {
+  font-size: 14px; line-height: 1.85; color: #334155;
+  margin-bottom: 16px;
+}
+.judge-note {
+  background: var(--amber-bg); border: 1px solid #FDE68A;
+  border-radius: 8px; padding: 12px 16px;
+  font-size: 13px; color: var(--amber-text); margin-top: 12px;
+}
+.judge-note strong { display: block; margin-bottom: 4px; }
+
+/* ── Grid Layout ──────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+/* ── Info Rows ────────────────────────────────────── */
+.info-row {
+  display: flex; justify-content: space-between;
+  align-items: baseline; padding: 7px 0;
+  border-bottom: 1px solid var(--gray-100); gap: 12px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-key   { color: var(--gray-600); font-size: 13px; flex-shrink: 0; }
+.info-value { font-weight: 500; font-size: 13px; text-align: right; }
+
+/* ── Score Bars ───────────────────────────────────── */
+.score-bars { display: flex; flex-direction: column; gap: 14px; }
+.score-bar-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+.score-bar-name  { color: var(--gray-600); font-weight: 500; }
+.score-bar-value { font-weight: 700; font-family: 'DM Mono', monospace; }
+.bar-track { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+.bar-fill  { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+.bar-high   { background: linear-gradient(90deg, #10B981, #34D399); }
+.bar-medium { background: linear-gradient(90deg, #F59E0B, #FCD34D); }
+.bar-low    { background: linear-gradient(90deg, #EF4444, #F87171); }
+
+/* ── Tags ─────────────────────────────────────────── */
+.tag-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+.tag-blue  { background: #EFF6FF; color: #1D4ED8; }
+.tag-red   { background: #FEF2F2; color: #991B1B; }
+.tag-green { background: #F0FDF4; color: #166534; }
+.tag-gray  { background: var(--gray-100); color: var(--gray-600); }
+
+/* ── Verdicts ─────────────────────────────────────── */
+.verdict-list { display: flex; flex-direction: column; }
+.verdict-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--gray-100);
+}
+.verdict-item:last-child { border-bottom: none; }
+.verdict-icon    { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.verdict-criterion { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+.verdict-comment   { font-size: 12px; color: var(--gray-600); line-height: 1.5; }
+
+/* ── Expandable ───────────────────────────────────── */
+.expand-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none; padding: 4px 0;
+}
+.expand-arrow { color: var(--gray-400); font-size: 12px; transition: transform 0.2s; }
+.expand-arrow.open { transform: rotate(180deg); }
+.expand-body {
+  display: none; padding-top: 12px; font-size: 13px;
+  color: var(--gray-600); line-height: 1.7;
+  border-top: 1px solid var(--gray-100); margin-top: 12px;
+}
+.expand-body.open { display: block; }
+
+/* ── Timeline ─────────────────────────────────────── */
+.timeline { display: flex; flex-direction: column; }
+.tl-item { display: flex; gap: 14px; padding: 8px 0; position: relative; }
+.tl-item:not(:last-child)::before {
+  content: ''; position: absolute; left: 7px; top: 28px;
+  bottom: 0; width: 2px; background: var(--gray-100);
+}
+.tl-dot {
+  width: 16px; height: 16px; border-radius: 50%; background: var(--green);
+  flex-shrink: 0; margin-top: 3px; display: flex;
+  align-items: center; justify-content: center; font-size: 8px; color: white;
+}
+.tl-dot.pending { background: var(--amber); }
+.tl-node   { font-weight: 600; font-size: 13px; text-transform: capitalize; }
+.tl-action { font-size: 12px; color: var(--gray-600); }
+.tl-time   { font-size: 11px; color: var(--gray-400); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+/* ── CV Preview ───────────────────────────────────── */
+.cv-preview {
+  font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8;
+  color: var(--gray-600); background: var(--gray-50); border-radius: var(--radius-sm);
+  padding: 16px; max-height: 280px; overflow-y: auto;
+  white-space: pre-wrap; border: 1px solid var(--gray-200);
+}
+
+/* ── Sticky Decision Bar ──────────────────────────── */
+.sticky-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+  z-index: 200; padding: 14px 24px;
+}
+.sticky-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.sticky-candidate { flex: 1; min-width: 200px; }
+.sticky-name { font-weight: 700; font-size: 15px; }
+.sticky-role { font-size: 12px; color: var(--gray-400); }
+.sticky-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.decision-btn {
+  padding: 10px 20px; border-radius: var(--radius-sm);
+  border: 2px solid transparent; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.decision-btn:hover { transform: translateY(-1px); }
+.btn-shortlist          { background: var(--green-bg);  color: var(--green-text); }
+.btn-shortlist.selected { border-color: var(--green); background: var(--green); color: white; }
+.btn-hold               { background: var(--amber-bg);  color: var(--amber-text); }
+.btn-hold.selected      { border-color: var(--amber); background: var(--amber); color: white; }
+.btn-reject             { background: var(--red-bg);    color: var(--red-text); }
+.btn-reject.selected    { border-color: var(--red); background: var(--red); color: white; }
+
+.reviewer-input {
+  padding: 9px 14px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; width: 180px; outline: none;
+}
+.reviewer-input:focus { border-color: var(--accent); }
+
+.confirm-btn {
+  padding: 10px 24px; background: var(--navy); color: white;
+  border: none; border-radius: var(--radius-sm); font-size: 13px;
+  font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.confirm-btn:hover:not(:disabled) { background: var(--navy-mid); transform: translateY(-1px); }
+.confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.override-bar { max-width: 1200px; margin: 0 auto; padding-top: 10px; display: none; }
+.override-bar.show { display: block; }
+.override-input {
+  width: 100%; padding: 9px 14px; border: 1px solid var(--amber);
+  border-radius: var(--radius-sm); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; background: var(--amber-bg); outline: none;
+}
+
+@media (max-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .exec-insights { grid-template-columns: 1fr; }
+  .exec-top { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/dashboard" class="nav-logo">Recruitment</a>
+  <div class="nav-links">
+    <a href="/dashboard">
+      Dashboard
+      <span class="nav-badge" id="nav-badge"></span>
+    </a>
+    <a href="/jobs">Jobs</a>
+    <a href="/upload">Upload CV</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user">{{ user.email if user else '' }}</span>
+    <form method="POST" action="/auth/logout" style="display:inline">
+      <button class="nav-logout" type="submit">Sign out</button>
+    </form>
+  </div>
+</nav>
+
+{% if judge and judge.conflict_flag %}
+<div class="conflict-banner">
+  ⚠ Judge flagged a conflict — please review carefully before deciding
+</div>
+{% endif %}
+
+<div class="container">
+
+  <a href="/dashboard" class="back-link">← Back to dashboard</a>
+
+  <!-- A. Executive Summary -->
+  <div class="exec-summary">
+    <div class="exec-top">
+      <div class="exec-candidate">
+        <h1>{{ candidate.name if candidate else '—' }}</h1>
+        <div class="role">
+          {{ jd.role_title if jd else '—' }}
+          <span>·</span>
+          {{ candidate.total_experience_years if candidate else 0 }} yrs experience
+        </div>
+      </div>
+
+      <div class="exec-right">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          {% set score = screening.composite_score if screening else 0 %}
+          <div class="score-big {% if score >= 70 %}high{% elif score >= 50 %}medium{% else %}low{% endif %}">
+            {{ score | round(0) | int }}
+          </div>
+          <div class="score-label">/ 100 score</div>
+        </div>
+
+        <div class="exec-badges">
+          <div class="exec-badge">
+            <span class="badge-label">AI Rec</span>
+            <span class="badge-value
+              {% if screening and screening.recommendation == 'SHORTLIST_INTERVIEW' %}green
+              {% elif screening and screening.recommendation == 'HOLD' %}amber
+              {% else %}red{% endif %}">
+              {% if screening %}
+                {% if screening.recommendation == 'SHORTLIST_INTERVIEW' %}SHORTLIST
+                {% elif screening.recommendation == 'HOLD' %}HOLD
+                {% else %}REJECT{% endif %}
+              {% else %}—{% endif %}
+            </span>
+          </div>
+          <div class="exec-badge">
+            <span class="badge-label">Confidence</span>
+            <span class="badge-value {% if confidence == 'HIGH' %}green{% elif confidence == 'MEDIUM' %}amber{% else %}red{% endif %}">
+              {{ confidence }}
+            </span>
+          </div>
+          <div class="exec-badge">
+            <span class="badge-label">Risk</span>
+            <span class="badge-value {% if risk == 'LOW' %}green{% elif risk == 'MEDIUM' %}amber{% else %}red{% endif %}">
+              {{ risk }}
+            </span>
+          </div>
+          <div class="exec-badge">
+            <span class="badge-label">Judge</span>
+            <span class="badge-value {% if judge and judge.overall_agrees %}green{% else %}red{% endif %}">
+              {% if judge %}{{ 'AGREES' if judge.overall_agrees else 'DISAGREES' }}{% else %}—{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="exec-divider">
+
+    <div class="exec-insights">
+      <div class="insight-group">
+        <h4>Top Strengths</h4>
+        <div class="insight-chips">
+          {% if screening and screening.strengths %}
+            {% for s in screening.strengths[:4] %}
+            <span class="insight-chip chip-green">✓ {{ s }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="color:rgba(255,255,255,0.3);font-size:13px">None recorded</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="insight-group">
+        <h4>Top Risks</h4>
+        <div class="insight-chips">
+          {% if screening and screening.weaknesses %}
+            {% for w in screening.weaknesses[:4] %}
+            <span class="insight-chip chip-red">⚠ {{ w }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="color:rgba(255,255,255,0.3);font-size:13px">None recorded</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. Pipeline Progress -->
+  <div class="progress-track">
+    {% set stages = [
+      ('Email / Upload', '✉', True),
+      ('CV Parsed',      '📄', True),
+      ('Screened',       '🔍', True),
+      ('Judge',          '⚖',  True),
+      ('HR Review',      '👤', status == 'Awaiting HR Review'),
+      ('Finalized',      '✓',  status not in ['Awaiting HR Review','In Progress','AI Screening','CV Parsing']),
+    ] %}
+    {% for label, icon, active in stages %}
+    <div class="progress-step {% if loop.index < loop.length and active %}done{% elif active %}active{% else %}pending{% endif %}">
+      <div class="step-icon">
+        {% if loop.index < loop.length and active %}✓{% else %}{{ icon }}{% endif %}
+      </div>
+      <div class="step-label">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- C. AI Assessment — structured first, narrative second -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">🤖 AI Assessment</div>
+
+    <!-- Structured score bars -->
+    <div class="score-bars" style="margin-bottom:20px">
+      {% if screening %}
+      {% set bars = [
+        ('Required Skills',  screening.required_skills_score,   '40%'),
+        ('Experience',       screening.experience_score,         '40%'),
+        ('Preferred Skills', screening.preferred_skills_score,   '10%'),
+        ('Education',        screening.education_domain_score,   '10%'),
+      ] %}
+      {% for name, score, weight in bars %}
+      {% set s = score | float %}
+      <div>
+        <div class="score-bar-header">
+          <span class="score-bar-name">{{ name }} <span style="color:var(--gray-400)">({{ weight }})</span></span>
+          <span class="score-bar-value"
+            style="color:{% if s >= 70 %}var(--green){% elif s >= 50 %}var(--amber){% else %}var(--red){% endif %}">
+            {{ s | round(0) | int }}
+          </span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill {% if s >= 70 %}bar-high{% elif s >= 50 %}bar-medium{% else %}bar-low{% endif %}"
+               style="width:{{ s }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid var(--gray-100);margin-bottom:16px"></div>
+
+    <!-- Plain English narrative -->
+    <div class="ai-narrative">
+      {% if screening and screening.decision_justification %}
+        {{ screening.decision_justification }}
+      {% else %}
+        No assessment available.
+      {% endif %}
+    </div>
+
+    <!-- Judge note — only shown if conflict flagged -->
+    {% if judge and judge.conflict_flag %}
+    <div class="judge-note">
+      <strong>⚠ Judge note{% if judge.conflict_reason %} — disagreement flagged{% endif %}</strong>
+      {% if judge.conflict_reason %}
+        {{ judge.conflict_reason }}
+      {% else %}
+        The judge disagrees with the screener on one or more criteria. Review the verdict below carefully.
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Main Grid -->
+  <div class="grid-2">
+
+    <!-- Left Column -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Candidate Profile -->
+      <div class="card">
+        <div class="card-title">👤 Candidate Profile</div>
+        <div class="info-row">
+          <span class="info-key">Email</span>
+          <span class="info-value">{{ candidate.email if candidate else '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Total Experience</span>
+          <span class="info-value">{{ candidate.total_experience_years if candidate else '—' }} years</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Relevant Experience</span>
+          <span class="info-value">{{ candidate.relevant_experience_years if candidate else '—' }} years</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Education</span>
+          <span class="info-value">{{ candidate.education if candidate else '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Experience Match</span>
+          <span class="info-value">
+            {% set exp = screening.experience_analysis if screening else {} %}
+            {% set rating = exp.experience_match_rating if exp else '' %}
+            {% if rating == 'STRONG_MATCH' %}<span class="tag tag-green">Strong Match</span>
+            {% elif rating == 'PARTIAL_MATCH' %}<span class="tag tag-gray">Partial Match</span>
+            {% elif rating == 'WEAK_MATCH' %}<span class="tag tag-red">Weak Match</span>
+            {% else %}—{% endif %}
+          </span>
+        </div>
+        {% if candidate and candidate.previous_roles %}
+        <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <span class="info-key">Previous Roles</span>
+          <div class="tag-group">
+            {% for role in candidate.previous_roles %}
+            <span class="tag tag-gray">{{ role }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Skills Analysis -->
+      <div class="card">
+        <div class="card-title">🎯 Skills Analysis</div>
+        {% if screening and screening.skills_analysis %}
+        {% set skills = screening.skills_analysis %}
+        <div style="margin-bottom:14px">
+          <div style="font-size:12px;color:var(--gray-600);font-weight:600;margin-bottom:6px">Matched Required</div>
+          <div class="tag-group">
+            {% for s in skills.matched_required %}
+            <span class="tag tag-green">✓ {{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:12px;color:var(--gray-600);font-weight:600;margin-bottom:6px">Missing Required</div>
+          <div class="tag-group">
+            {% for s in skills.missing_required %}
+            <span class="tag tag-red">✗ {{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% if skills.transferable %}
+        <div>
+          <div style="font-size:12px;color:var(--gray-600);font-weight:600;margin-bottom:6px">Transferable</div>
+          <div class="tag-group">
+            {% for s in skills.transferable %}
+            <span class="tag tag-blue">{{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Activity Timeline -->
+      <div class="card">
+        <div class="card-title">🕐 Activity Timeline</div>
+        {% if audit %}
+        <div class="timeline">
+          {% for entry in audit %}
+          <div class="tl-item">
+            <div class="tl-dot {{ 'pending' if entry.action == 'interrupted' else '' }}">
+              {{ '⏳' if entry.action == 'interrupted' else '✓' }}
+            </div>
+            <div class="tl-content">
+              <div class="tl-node">{{ entry.node_name | replace('_', ' ') | title }}</div>
+              <div class="tl-action">{{ entry.action | title }}</div>
+              <div class="tl-time">
+                {{ entry.created_at[:16] | replace('T', ' ') if entry.created_at else '' }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--gray-400);font-size:13px">No timeline data yet</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Judge Verdict -->
+      <div class="card">
+        <div class="card-title">
+          ⚖ Judge Verdict
+          {% if judge %}
+          <span style="font-size:11px;font-weight:400;color:var(--gray-400);text-transform:none;letter-spacing:0">
+            — {{ judge.confidence | round(0) | int }}% confidence
+          </span>
+          {% endif %}
+        </div>
+        {% if judge and judge.criterion_verdicts %}
+        <div class="verdict-list">
+          {% for v in judge.criterion_verdicts %}
+          <div class="verdict-item">
+            <div class="verdict-icon">{{ '✅' if v.judge_agrees else '❌' }}</div>
+            <div>
+              <div class="verdict-criterion">{{ v.criterion | replace('_', ' ') | title }}</div>
+              <div class="verdict-comment">{{ v.judge_comment }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--gray-400);font-size:13px">No verdict available</p>
+        {% endif %}
+      </div>
+
+      <!-- Screener Justification (expandable) -->
+      <div class="card">
+        <div class="expandable">
+          <div class="expand-toggle" onclick="toggleExpand(this)">
+            <div class="card-title" style="margin-bottom:0">🤖 Full Screener Justification</div>
+            <span class="expand-arrow">▼</span>
+          </div>
+          <div class="expand-body">
+            {{ screening.decision_justification if screening else '—' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- CV Preview (expandable) -->
+      <div class="card">
+        <div class="expandable">
+          <div class="expand-toggle" onclick="toggleExpand(this)">
+            <div class="card-title" style="margin-bottom:0">📄 CV Preview</div>
+            <span class="expand-arrow">▼</span>
+          </div>
+          <div class="expand-body">
+            {% if candidate and candidate.raw_cv_text %}
+            <div class="cv-preview">{{ candidate.raw_cv_text[:3000] }}{% if candidate.raw_cv_text | length > 3000 %}...{% endif %}</div>
+            {% else %}
+            <p style="color:var(--gray-400)">CV text not available</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviewer Notes -->
+      <div class="card">
+        <div class="card-title">📝 Reviewer Notes</div>
+        <textarea
+          id="reviewer-notes"
+          placeholder="Add any notes about this candidate (optional)..."
+          style="width:100%;border:1px solid var(--border);border-radius:8px;
+                 padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;
+                 resize:vertical;min-height:80px;outline:none;background:#fafafa;color:var(--text)">
+        </textarea>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Sticky Decision Bar -->
+<div class="sticky-bar">
+  <form method="POST" action="/review/{{ run_id }}" id="review-form">
+    <input type="hidden" name="final_decision" id="final_decision" value="">
+
+    <div class="sticky-inner">
+      <div class="sticky-candidate">
+        <div class="sticky-name">{{ candidate.name if candidate else 'Candidate' }}</div>
+        <div class="sticky-role">{{ jd.role_title if jd else '' }} · Make your decision</div>
+      </div>
+      <div class="sticky-actions">
+        <button type="button" class="decision-btn btn-shortlist"
+                onclick="selectDecision('SHORTLIST_INTERVIEW', this)">✓ Shortlist</button>
+        <button type="button" class="decision-btn btn-hold"
+                onclick="selectDecision('HOLD', this)">⏸ Hold</button>
+        <button type="button" class="decision-btn btn-reject"
+                onclick="selectDecision('REJECT', this)">✗ Reject</button>
+        <input type="text" name="reviewed_by" class="reviewer-input"
+               placeholder="Your name" required>
+        <button type="submit" class="confirm-btn" id="confirm-btn" disabled>
+          Confirm →
+        </button>
+      </div>
+    </div>
+
+    <div class="override-bar" id="override-bar">
+      <input type="text" name="override_reason" id="override_reason"
+             class="override-input"
+             placeholder="Override reason required — explain why you are changing the AI recommendation...">
+    </div>
+  </form>
+</div>
+
+<script>
+  const screenerRec = "{{ screening.recommendation if screening else '' }}";
+  const judgeRec    = "{{ judge.suggested_recommendation if judge else '' }}";
+
+  function selectDecision(decision, btn) {
+    document.querySelectorAll('.decision-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('final_decision').value = decision;
+    document.getElementById('confirm-btn').disabled = false;
+
+    const differs = decision !== screenerRec && decision !== judgeRec;
+    document.getElementById('override-bar').classList.toggle('show', differs);
+  }
+
+  function toggleExpand(toggle) {
+    const arrow = toggle.querySelector('.expand-arrow');
+    const body  = toggle.nextElementSibling;
+    const open  = body.classList.toggle('open');
+    arrow.classList.toggle('open', open);
+  }
+
+  document.getElementById('review-form').addEventListener('submit', function(e) {
+    const decision = document.getElementById('final_decision').value;
+    if (!decision) { e.preventDefault(); alert('Please select a decision.'); return; }
+
+    const differs = decision !== screenerRec && decision !== judgeRec;
+    const reason  = document.getElementById('override_reason')?.value?.trim() || '';
+    if (differs && !reason) {
+      e.preventDefault();
+      alert('Please provide an override reason since your decision differs from the AI recommendation.');
+      return;
+    }
+
+    document.getElementById('confirm-btn').disabled = true;
+    document.getElementById('confirm-btn').textContent = 'Submitting...';
+  });
+
+  // Live nav badge
+  async function updateBadge() {
+    try {
+      const res  = await fetch('/api/pending-counts');
+      if (!res.ok) return;
+      const data = await res.json();
+      const badge = document.getElementById('nav-badge');
+      if (data.total > 0) {
+        badge.textContent   = data.total;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    } catch(e) {}
+  }
+  updateBadge();
+  setInterval(updateBadge, 10000);
+</script>
+
+</body>
+</html>

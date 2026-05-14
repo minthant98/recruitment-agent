@@ -1,0 +1,58 @@
+# ── Environment ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Credentials (never commit) ────────────────────────
+credentials/
+*.json
+!pyproject.toml
+
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Virtual environments ──────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── IDE ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Outputs (generated files) ─────────────────────────
+outputs/
+*.xlsx
+
+# ── Logs ──────────────────────────────────────────────
+*.log
+logs/
+
+# ── Testing ───────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+checkpoints.db
+
+# ── Attachments (uploaded CVs) ────────────────────────
+attachments/
+
+# ── JD files ──────────────────────────────────────────
+jds/
+
+# ── LangSmith ─────────────────────────────────────────
+.langgraph/

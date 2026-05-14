@@ -1,0 +1,147 @@
+
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const { svg } = await mermaid.render('erd-svg', `erDiagram
+  departments {
+    uuid id PK
+    string name
+    string head_name
+    string head_email
+    timestamp created_at
+  }
+  job_descriptions {
+    uuid id PK
+    uuid dept_id FK
+    string role_title
+    string seniority_level
+    float required_years
+    text raw_text
+    string source_file
+    timestamp created_at
+  }
+  screening_criteria {
+    uuid id PK
+    uuid jd_id FK
+    string criterion_name
+    float weight
+    string description
+  }
+  candidates {
+    uuid id PK
+    string name
+    string email
+    float total_experience_years
+    float relevant_experience_years
+    jsonb previous_roles
+    jsonb industry_exposure
+    string education
+    text raw_cv_text
+    jsonb structured_cv
+    string source_email_id
+    timestamp created_at
+  }
+  pipeline_runs {
+    uuid id PK
+    uuid candidate_id FK
+    uuid jd_id FK
+    string current_node
+    string status
+    timestamp created_at
+    timestamp updated_at
+  }
+  screening_results {
+    uuid id PK
+    uuid run_id FK
+    float required_skills_score
+    float experience_score
+    float preferred_skills_score
+    float education_domain_score
+    float composite_score
+    string experience_match_rating
+    jsonb skills_analysis
+    jsonb experience_analysis
+    jsonb strengths
+    jsonb weaknesses
+    string recommendation
+    string decision_justification
+    jsonb full_screener_output
+  }
+  judge_verdicts {
+    uuid id PK
+    uuid run_id FK
+    jsonb criterion_verdicts
+    bool overall_agrees
+    string suggested_recommendation
+    bool conflict_flag
+    string conflict_reason
+    float confidence
+    timestamp created_at
+  }
+  hitl_reviews {
+    uuid id PK
+    uuid run_id FK
+    string reviewed_by
+    string final_decision
+    string override_reason
+    bool was_overridden
+    timestamp reviewed_at
+  }
+  audit_log {
+    uuid id PK
+    uuid run_id FK
+    string node_name
+    string action
+    jsonb payload
+    timestamp created_at
+  }
+
+  departments ||--o{ job_descriptions : has
+  job_descriptions ||--o{ screening_criteria : defines
+  candidates ||--o{ pipeline_runs : triggers
+  job_descriptions ||--o{ pipeline_runs : targets
+  pipeline_runs ||--o| screening_results : produces
+  pipeline_runs ||--o| judge_verdicts : evaluated_by
+  pipeline_runs ||--o| hitl_reviews : reviewed_in
+  pipeline_runs ||--o{ audit_log : logs
+`);
+document.getElementById('erd').innerHTML = svg;
+
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>

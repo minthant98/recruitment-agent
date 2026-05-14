@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — Recruitment</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f3;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e5e5e3;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 2rem;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #1a1a2e;
+      background: #fff;
+    }
+
+    .error-box {
+      background: #fff0f0;
+      border: 1px solid #fcc;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #c0392b;
+      margin-bottom: 1.25rem;
+    }
+
+    .welcome-box {
+      background: #f0fff4;
+      border: 1px solid #b2dfdb;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #1b5e20;
+      margin-bottom: 1.25rem;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 11px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    button[type="submit"]:hover { opacity: 0.88; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Recruitment</div>
+    <div class="subtitle">Sign in to your workspace</div>
+
+    {% if request.query_params.get('welcome') %}
+    <div class="welcome-box">Account created — you can now sign in.</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/auth/login">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          autocomplete="email"
+          required
+          autofocus
+        >
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+</body>
+</html>

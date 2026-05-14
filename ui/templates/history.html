@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidates — Recruitment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:       #0F1C2E;
+  --navy-mid:   #1A2E46;
+  --accent:     #3B82F6;
+  --green:      #10B981;
+  --green-bg:   #D1FAE5;
+  --green-text: #065F46;
+  --amber:      #F59E0B;
+  --amber-bg:   #FEF3C7;
+  --amber-text: #92400E;
+  --red:        #EF4444;
+  --red-bg:     #FEE2E2;
+  --red-text:   #991B1B;
+  --gray-50:    #F8FAFC;
+  --gray-100:   #F1F5F9;
+  --gray-200:   #E2E8F0;
+  --gray-400:   #94A3B8;
+  --gray-600:   #475569;
+  --text:       #0F172A;
+  --surface:    #FFFFFF;
+  --border:     #E2E8F0;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.08);
+  --radius:     12px;
+  --radius-sm:  8px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-50);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav {
+  background: var(--navy);
+  padding: 0 2rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a { color: #aaa; font-size: 14px; text-decoration: none; transition: color 0.15s; }
+.nav-links a:hover { color: #fff; }
+.nav-links a.active { color: #fff; }
+.nav-right { display: flex; align-items: center; gap: 1.5rem; }
+.nav-user { color: #888; font-size: 13px; }
+.nav-badge {
+  background: #e53935; color: #fff; font-size: 11px; font-weight: 500;
+  min-width: 18px; height: 18px; border-radius: 9px; padding: 0 5px;
+  display: none; align-items: center; justify-content: center; margin-left: 6px;
+}
+.nav-logout {
+  color: #666; font-size: 13px; cursor: pointer;
+  background: none; border: none; font-family: inherit; padding: 0;
+}
+.nav-logout:hover { color: #fff; }
+
+.container { max-width: 1300px; margin: 0 auto; padding: 24px; }
+
+/* Back link */
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--gray-400); text-decoration: none;
+  margin-bottom: 20px;
+}
+.back-link:hover { color: var(--text); }
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 20px;
+  box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 4px;
+}
+.stat-num   { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+.stat-green  { color: var(--green); }
+.stat-amber  { color: var(--amber); }
+.stat-red    { color: var(--red); }
+.stat-orange { color: #F97316; }
+
+/* Needs Attention */
+.attention-bar {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  border: 1px solid #FDE68A; border-radius: var(--radius);
+  padding: 14px 20px; margin-bottom: 16px; display: none;
+}
+.attention-bar.show { display: block; }
+.attention-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--amber-text); margin-bottom: 8px;
+}
+.attention-items { display: flex; gap: 16px; flex-wrap: wrap; }
+.attention-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--amber-text); font-weight: 500; }
+
+/* Compare Bar */
+.compare-bar {
+  background: var(--navy); color: white; border-radius: var(--radius);
+  padding: 12px 20px; margin-bottom: 12px; display: none;
+  align-items: center; justify-content: space-between; gap: 12px;
+}
+.compare-bar.show { display: flex; }
+.compare-info { font-size: 13px; }
+.compare-info strong { font-weight: 700; }
+.compare-btn {
+  padding: 8px 18px; background: var(--accent); color: white; border: none;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.compare-clear {
+  background: none; border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.7); padding: 8px 14px;
+  border-radius: var(--radius-sm); font-size: 13px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+
+/* Filters */
+.filter-bar {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 20px; margin-bottom: 16px;
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+.filter-bar input, .filter-bar select {
+  padding: 8px 12px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; background: var(--gray-50);
+  color: var(--text); outline: none; transition: border-color 0.15s;
+}
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); background: white; }
+.filter-bar input { width: 200px; }
+.filter-count { margin-left: auto; font-size: 12px; color: var(--gray-400); font-family: 'DM Mono', monospace; }
+
+/* Table */
+.table-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.table-scroll { overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 280px); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead { position: sticky; top: 0; z-index: 10; }
+th {
+  background: var(--navy); color: rgba(255,255,255,0.7);
+  padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer; user-select: none; white-space: nowrap;
+}
+th:hover { color: white; }
+th .sort-icon { margin-left: 4px; font-size: 10px; }
+th:first-child { padding-left: 16px; width: 40px; }
+
+td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+td:first-child { padding-left: 16px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #F8FBFF; cursor: pointer; }
+tr.selected td { background: #EFF6FF; }
+tr.selected td:first-child { border-left: 3px solid var(--accent); }
+
+.cand-name  { font-weight: 600; font-size: 14px; color: var(--text); }
+.cand-email { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 20px; font-size: 11px;
+  font-weight: 600; white-space: nowrap;
+}
+.badge-green  { background: var(--green-bg);  color: var(--green-text); }
+.badge-amber  { background: var(--amber-bg);  color: var(--amber-text); }
+.badge-red    { background: var(--red-bg);    color: var(--red-text); }
+.badge-blue   { background: #EFF6FF; color: #1D4ED8; }
+.badge-gray   { background: var(--gray-100);  color: var(--gray-600); }
+.badge-purple { background: #F5F3FF; color: #5B21B6; }
+.badge-orange { background: #FFF7ED; color: #C2410C; }
+
+.score-pill {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-weight: 700; font-size: 12px; font-family: 'DM Mono', monospace;
+}
+.conflict-dot {
+  display: inline-block; width: 7px; height: 7px;
+  background: var(--amber); border-radius: 50%;
+  margin-right: 4px; vertical-align: middle;
+}
+
+.state-msg { text-align: center; padding: 60px; color: var(--gray-400); }
+.state-msg .icon { font-size: 40px; margin-bottom: 12px; }
+.state-msg p { font-size: 14px; }
+
+/* Compare Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 500; display: none; align-items: center;
+  justify-content: center; padding: 24px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white; border-radius: var(--radius); padding: 28px;
+  max-width: 900px; width: 100%; max-height: 80vh;
+  overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title  { font-size: 18px; font-weight: 700; }
+.modal-close  { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray-400); }
+.compare-grid { display: grid; gap: 16px; }
+.compare-col  { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; }
+.compare-col h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.compare-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 0; border-bottom: 1px solid var(--gray-200); font-size: 13px;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { color: var(--gray-600); }
+.compare-val { font-weight: 600; }
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(3,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/dashboard" class="nav-logo">Recruitment</a>
+  <div class="nav-links">
+    <a href="/dashboard">
+      Dashboard
+      <span class="nav-badge" id="nav-badge"></span>
+    </a>
+    <a href="/jobs">Jobs</a>
+    <a href="/upload">Upload CV</a>
+    <a href="/history" class="active">Candidates</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user">{{ user.email if user else '' }}</span>
+    <form method="POST" action="/auth/logout" style="display:inline">
+      <button class="nav-logout" type="submit">Sign out</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Back link -->
+  <a href="/dashboard" class="back-link">← Back to dashboard</a>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-label">Total Reviewed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-green" id="stat-shortlist">—</div>
+      <div class="stat-label">Shortlisted</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-amber" id="stat-hold">—</div>
+      <div class="stat-label">On Hold</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-red" id="stat-reject">—</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-orange" id="stat-override">—</div>
+      <div class="stat-label">HR Overrides</div>
+    </div>
+  </div>
+
+  <!-- Needs Attention -->
+  <div class="attention-bar" id="attention-bar">
+    <div class="attention-title">⚠ Needs Attention</div>
+    <div class="attention-items" id="attention-items"></div>
+  </div>
+
+  <!-- Compare Bar -->
+  <div class="compare-bar" id="compare-bar">
+    <div class="compare-info">
+      <strong id="compare-count">0</strong> candidates selected for comparison
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="compare-clear" onclick="clearCompare()">Clear</button>
+      <button class="compare-btn" onclick="openCompare()">Compare Selected →</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <input type="text" id="filter-name" placeholder="🔍 Search candidate..." oninput="applyFilters()">
+    <select id="filter-decision" onchange="applyFilters()">
+      <option value="">All Decisions</option>
+      <option value="SHORTLIST_INTERVIEW">Shortlisted</option>
+      <option value="HOLD">Hold</option>
+      <option value="REJECT">Rejected</option>
+    </select>
+    <select id="filter-role" onchange="applyFilters()">
+      <option value="">All Roles</option>
+    </select>
+    <select id="filter-status" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="Awaiting HR Review">Awaiting HR Review</option>
+      <option value="Interview Scheduled">Interview Scheduled</option>
+      <option value="Interview Invited">Interview Invited</option>
+      <option value="On Hold">On Hold</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+    <select id="filter-risk" onchange="applyFilters()">
+      <option value="">All Risk Levels</option>
+      <option value="HIGH">High Risk</option>
+      <option value="MEDIUM">Medium Risk</option>
+      <option value="LOW">Low Risk</option>
+    </select>
+    <select id="filter-conflict" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="true">Conflicts Only</option>
+    </select>
+    <div class="filter-count" id="filter-count">— results</div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div id="loading" class="state-msg"><div class="icon">⏳</div><p>Loading candidates...</p></div>
+    <div class="table-scroll" id="table-container" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" style="cursor:pointer"></th>
+            <th onclick="sortTable('candidate_name')">Candidate <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('role_title')">Role <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('status')">Status <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('composite_score')">Score <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('confidence')">Confidence <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('risk')">Risk <span class="sort-icon">↕</span></th>
+            <th>Screener</th>
+            <th>Judge</th>
+            <th onclick="sortTable('hr_final_decision')">HR Decision <span class="sort-icon">↕</span></th>
+            <th>Reviewed By</th>
+            <th onclick="sortTable('reviewed_at')">Date <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div class="state-msg" id="empty-state" style="display:none">
+      <div class="icon">🔍</div><p>No candidates match your filters</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Compare Modal -->
+<div class="modal-overlay" id="compare-modal" onclick="if(event.target===this)closeCompare()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Candidate Comparison</div>
+      <button class="modal-close" onclick="closeCompare()">✕</button>
+    </div>
+    <div class="compare-grid" id="compare-grid"></div>
+  </div>
+</div>
+
+<script>
+let allData     = [];
+let sortCol     = 'reviewed_at';
+let sortAsc     = false;
+let selectedIds = new Set();
+
+function decisionBadge(d) {
+  if (!d) return '<span class="badge badge-gray">—</span>';
+  const map = {
+    SHORTLIST_INTERVIEW: ['badge-green', '✓ Shortlist'],
+    HOLD:                ['badge-amber', '⏸ Hold'],
+    REJECT:              ['badge-red',   '✗ Reject'],
+  };
+  const [cls, label] = map[d] || ['badge-gray', d];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function statusBadge(s) {
+  const map = {
+    'Awaiting HR Review':  ['badge-orange', '⏳ Awaiting HR'],
+    'Interview Scheduled': ['badge-blue',   '📅 Scheduled'],
+    'Interview Invited':   ['badge-green',  '✉ Invited'],
+    'On Hold':             ['badge-amber',  '⏸ On Hold'],
+    'Rejected':            ['badge-red',    '✗ Rejected'],
+    'AI Screening':        ['badge-purple', '🤖 Screening'],
+    'CV Parsing':          ['badge-gray',   '📄 Parsing'],
+    'In Progress':         ['badge-gray',   '⟳ In Progress'],
+  };
+  const [cls, label] = map[s] || ['badge-gray', s || '—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function confidenceBadge(c) {
+  const map = {
+    HIGH:   ['badge-green', 'HIGH'],
+    MEDIUM: ['badge-amber', 'MED'],
+    LOW:    ['badge-red',   'LOW'],
+  };
+  const [cls, label] = map[c] || ['badge-gray', c || '—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function riskBadge(r) {
+  const map = {
+    LOW:    ['badge-green', '🟢 LOW'],
+    MEDIUM: ['badge-amber', '🟡 MED'],
+    HIGH:   ['badge-red',   '🔴 HIGH'],
+  };
+  const [cls, label] = map[r] || ['badge-gray', r || '—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function scorePill(score) {
+  if (score === '' || score === null || score === undefined) return '—';
+  const n = parseFloat(score);
+  const [bg, col] = n >= 70 ? ['#D1FAE5','#065F46'] : n >= 50 ? ['#FEF3C7','#92400E'] : ['#FEE2E2','#991B1B'];
+  return `<span class="score-pill" style="background:${bg};color:${col}">${n.toFixed(1)}</span>`;
+}
+
+function buildAttention(data) {
+  const conflicts = data.filter(r => r.conflict_flag).length;
+  const lowConf   = data.filter(r => r.confidence === 'LOW').length;
+  const pending   = data.filter(r => r.status === 'Awaiting HR Review').length;
+  const highRisk  = data.filter(r => r.risk === 'HIGH').length;
+  const items = [];
+  if (pending   > 0) items.push(`⚠ ${pending} pending HR review`);
+  if (conflicts > 0) items.push(`⚠ ${conflicts} agent conflicts`);
+  if (lowConf   > 0) items.push(`⚠ ${lowConf} low-confidence recommendations`);
+  if (highRisk  > 0) items.push(`⚠ ${highRisk} high-risk candidates`);
+  const bar = document.getElementById('attention-bar');
+  if (items.length) {
+    document.getElementById('attention-items').innerHTML =
+      items.map(i => `<div class="attention-item">${i}</div>`).join('');
+    bar.classList.add('show');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function updateStats(data) {
+  document.getElementById('stat-total').textContent     = data.length;
+  document.getElementById('stat-shortlist').textContent = data.filter(r => r.hr_final_decision === 'SHORTLIST_INTERVIEW').length;
+  document.getElementById('stat-hold').textContent      = data.filter(r => r.hr_final_decision === 'HOLD').length;
+  document.getElementById('stat-reject').textContent    = data.filter(r => r.hr_final_decision === 'REJECT').length;
+  document.getElementById('stat-override').textContent  = data.filter(r => r.was_overridden).length;
+}
+
+function populateFilters(data) {
+  const roles = [...new Set(data.map(r => r.role_title).filter(Boolean))];
+  const sel   = document.getElementById('filter-role');
+  roles.forEach(role => {
+    if (!sel.querySelector(`option[value="${role}"]`)) {
+      const o = document.createElement('option');
+      o.value = role; o.textContent = role;
+      sel.appendChild(o);
+    }
+  });
+}
+
+function applyFilters() {
+  const name     = document.getElementById('filter-name').value.toLowerCase();
+  const decision = document.getElementById('filter-decision').value;
+  const role     = document.getElementById('filter-role').value;
+  const status   = document.getElementById('filter-status').value;
+  const risk     = document.getElementById('filter-risk').value;
+  const conflict = document.getElementById('filter-conflict').value;
+
+  let filtered = allData.filter(r => {
+    if (name     && !(r.candidate_name || '').toLowerCase().includes(name)) return false;
+    if (decision && r.hr_final_decision !== decision)  return false;
+    if (role     && r.role_title !== role)             return false;
+    if (status   && r.status !== status)               return false;
+    if (risk     && r.risk !== risk)                   return false;
+    if (conflict === 'true' && !r.conflict_flag)       return false;
+    return true;
+  });
+
+  filtered = sortData(filtered);
+  renderTable(filtered);
+  document.getElementById('filter-count').textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`;
+}
+
+function sortData(data) {
+  return [...data].sort((a, b) => {
+    let va = a[sortCol] ?? '';
+    let vb = b[sortCol] ?? '';
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ?  1 : -1;
+    return 0;
+  });
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = false; }
+  applyFilters();
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('table-body');
+  if (!data.length) {
+    document.getElementById('table-container').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+    return;
+  }
+  document.getElementById('table-container').style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+
+  tbody.innerHTML = data.map(r => {
+    const checked  = selectedIds.has(r.run_id) ? 'checked' : '';
+    const selClass = selectedIds.has(r.run_id) ? 'selected' : '';
+    return `
+    <tr class="${selClass}" onclick="rowClick(event, '${r.run_id}')">
+      <td onclick="event.stopPropagation()">
+        <input type="checkbox" ${checked}
+               onchange="toggleSelect('${r.run_id}', this.checked)"
+               style="cursor:pointer">
+      </td>
+      <td>
+        <div class="cand-name">${r.candidate_name || '—'}</div>
+        <div class="cand-email">${r.candidate_email || ''}</div>
+      </td>
+      <td>
+        <div style="font-weight:500">${r.role_title || '—'}</div>
+        <div style="font-size:12px;color:var(--gray-400)">${r.department || ''}</div>
+      </td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${scorePill(r.composite_score)}</td>
+      <td>${confidenceBadge(r.confidence)}</td>
+      <td>
+        ${riskBadge(r.risk)}
+        ${r.conflict_flag ? '<span class="conflict-dot" title="Agent conflict"></span>' : ''}
+      </td>
+      <td>${decisionBadge(r.screener_rec)}</td>
+      <td>${decisionBadge(r.judge_rec)}</td>
+      <td>
+        ${decisionBadge(r.hr_final_decision)}
+        ${r.was_overridden ? '<br><span class="badge badge-orange" style="margin-top:3px;font-size:10px">⚠ Override</span>' : ''}
+      </td>
+      <td style="font-size:12px;color:var(--gray-600)">${r.reviewed_by || '—'}</td>
+      <td style="font-size:12px;color:var(--gray-400);font-family:'DM Mono',monospace">
+        ${r.reviewed_at ? r.reviewed_at.split('T')[0] : '—'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function rowClick(event, runId) {
+  if (event.target.type === 'checkbox') return;
+  window.location = `/review/${runId}`;
+}
+
+function toggleSelect(runId, checked) {
+  if (checked) selectedIds.add(runId);
+  else selectedIds.delete(runId);
+  updateCompareBar();
+  applyFilters();
+}
+
+function toggleSelectAll(cb) {
+  const visibleIds = document.querySelectorAll('#table-body tr');
+  visibleIds.forEach(tr => {
+    const cb2 = tr.querySelector('input[type=checkbox]');
+    const onclick = tr.getAttribute('onclick') || '';
+    const match = onclick.match(/'([^']+)'/);
+    if (match) {
+      if (cb.checked) selectedIds.add(match[1]);
+      else selectedIds.delete(match[1]);
+    }
+    if (cb2) cb2.checked = cb.checked;
+  });
+  updateCompareBar();
+  applyFilters();
+}
+
+function updateCompareBar() {
+  document.getElementById('compare-count').textContent = selectedIds.size;
+  document.getElementById('compare-bar').classList.toggle('show', selectedIds.size >= 2);
+}
+
+function clearCompare() {
+  selectedIds.clear();
+  updateCompareBar();
+  applyFilters();
+}
+
+function openCompare() {
+  const candidates = allData.filter(r => selectedIds.has(r.run_id));
+  const grid = document.getElementById('compare-grid');
+  grid.style.gridTemplateColumns = `repeat(${candidates.length}, 1fr)`;
+  const fields = [
+    ['Score',       r => r.composite_score ? parseFloat(r.composite_score).toFixed(1) : '—'],
+    ['Confidence',  r => r.confidence],
+    ['Risk',        r => r.risk],
+    ['Status',      r => r.status],
+    ['Screener',    r => r.screener_rec ? r.screener_rec.replace('_INTERVIEW','') : '—'],
+    ['Judge',       r => r.judge_rec ? r.judge_rec.replace('_INTERVIEW','') : '—'],
+    ['HR Decision', r => r.hr_final_decision ? r.hr_final_decision.replace('_INTERVIEW','') : '—'],
+    ['Overridden',  r => r.was_overridden ? 'Yes' : 'No'],
+    ['Reviewed By', r => r.reviewed_by || '—'],
+    ['Date',        r => r.reviewed_at ? r.reviewed_at.split('T')[0] : '—'],
+  ];
+  grid.innerHTML = candidates.map(r => `
+    <div class="compare-col">
+      <h3>${r.candidate_name || '—'}</h3>
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:12px">${r.role_title || ''}</div>
+      ${fields.map(([key, fn]) => `
+        <div class="compare-row">
+          <span class="compare-key">${key}</span>
+          <span class="compare-val">${fn(r)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+  document.getElementById('compare-modal').classList.add('show');
+}
+
+function closeCompare() {
+  document.getElementById('compare-modal').classList.remove('show');
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/history');
+    allData   = await res.json();
+    document.getElementById('loading').style.display = 'none';
+    updateStats(allData);
+    buildAttention(allData);
+    populateFilters(allData);
+    applyFilters();
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      '<div class="icon">❌</div><p>Failed to load data</p>';
+  }
+}
+
+// Live nav badge
+async function updateBadge() {
+  try {
+    const res  = await fetch('/api/pending-counts');
+    if (!res.ok) return;
+    const data = await res.json();
+    const badge = document.getElementById('nav-badge');
+    if (data.total > 0) {
+      badge.textContent   = data.total;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+loadHistory();
+setInterval(loadHistory, 30000);
+updateBadge();
+setInterval(updateBadge, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set your password — Recruitment</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           min-height: 100vh; display: flex; align-items: center;
+           justify-content: center; padding: 1rem; }
+    .card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3;
+            padding: 2.5rem 2rem; width: 100%; max-width: 400px; }
+    .logo { font-size: 18px; font-weight: 500; color: #1a1a2e; margin-bottom: 0.4rem; }
+    .subtitle { font-size: 14px; color: #888; margin-bottom: 2rem; }
+    .field { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 6px; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; color: #1a1a1a; background: #fafafa;
+            transition: border-color 0.15s; outline: none; }
+    input:focus { border-color: #1a1a2e; background: #fff; }
+    input[readonly] { background: #f0f0f0; color: #888; cursor: not-allowed; }
+    button[type="submit"] { width: 100%; padding: 11px; background: #1a1a2e; color: #fff;
+            border: none; border-radius: 8px; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: opacity 0.15s; margin-top: 0.5rem; }
+    button[type="submit"]:hover { opacity: 0.88; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Recruitment</div>
+    <div class="subtitle">You've been invited. Set a password to get started.</div>
+
+    <form method="POST" action="/auth/accept-invite">
+      <input type="hidden" name="token" value="{{ token }}">
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" value="{{ email }}" readonly>
+      </div>
+
+      <div class="field">
+        <label for="password">Choose a password</label>
+        <input type="password" id="password" name="password"
+               minlength="8" required autofocus
+               placeholder="At least 8 characters">
+      </div>
+
+      <button type="submit">Create account</button>
+    </form>
+  </div>
+</body>
+</html>

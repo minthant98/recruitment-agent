@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recruitment-agent"
+version = "0.1.0"
+description = "AI-powered end-to-end recruitment pipeline using LangGraph and Groq"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Orchestration
+    "langgraph>=0.2.0",
+    "langchain-core>=0.2.0",
+
+    # LLM
+    "groq>=0.9.0",
+    "langchain-groq>=0.1.0",
+
+    # Database
+    "supabase>=2.5.0",
+
+    # CV parsing
+    "pdfplumber>=0.11.0",
+    "python-docx>=1.1.0",
+
+    # Email
+    "google-api-python-client>=2.130.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.2.0",
+
+    # Excel audit
+    "openpyxl>=3.1.0",
+
+    # Validation & config
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "python-dotenv>=1.0.0",
+
+    # Utilities
+    "tenacity>=8.3.0",
+    "structlog>=24.1.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Recruitment{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           color: #1a1a1a; min-height: 100vh; }
+
+    /* ── Nav ── */
+    nav {
+      background: #1a1a2e;
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      color: #fff;
+      font-weight: 500;
+      font-size: 15px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: #aaa;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active { color: #fff; }
+
+    /* Live badge */
+    .nav-badge-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .nav-badge {
+      background: #e53935;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      padding: 0 5px;
+      display: none;               /* hidden until count > 0 */
+      align-items: center;
+      justify-content: center;
+      margin-left: 6px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.7; }
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-user {
+      color: #888;
+      font-size: 13px;
+    }
+
+    .nav-logout {
+      color: #666;
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+    }
+    .nav-logout:hover { color: #fff; }
+
+    {% block extra_styles %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/dashboard" class="nav-logo">Recruitment</a>
+
+  <div class="nav-links">
+    <a href="/dashboard" {% if active_page == 'dashboard' %}class="active"{% endif %}>
+      Dashboard
+      <span class="nav-badge" id="nav-badge"></span>
+    </a>
+    <a href="/jobs"    {% if active_page == 'jobs'      %}class="active"{% endif %}>Jobs</a>
+    <a href="/upload"  {% if active_page == 'upload'    %}class="active"{% endif %}>Upload CV</a>
+    <a href="/history" {% if active_page == 'history'   %}class="active"{% endif %}>Candidates</a>
+  </div>
+
+  <div class="nav-right">
+    <span class="nav-user">{{ user.email }}</span>
+    <form method="POST" action="/auth/logout" style="display:inline">
+      <button class="nav-logout" type="submit">Sign out</button>
+    </form>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<!-- Live badge polling -->
+<script>
+  const badge = document.getElementById('nav-badge');
+
+  async function updateBadge() {
+    try {
+      const res  = await fetch('/api/pending-counts');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.total > 0) {
+        badge.textContent    = data.total;
+        badge.style.display  = 'inline-flex';
+        badge.title = [
+          data.needs_review        ? `${data.needs_review} awaiting review`       : '',
+          data.needs_confirmation  ? `${data.needs_confirmation} need confirmation` : '',
+          data.unmatched           ? `${data.unmatched} unmatched`                 : '',
+        ].filter(Boolean).join(' · ');
+      } else {
+        badge.style.display = 'none';
+      }
+    } catch (e) {
+      // Silently fail — don't break the page if polling fails
+    }
+  }
+
+  // Run immediately then every 10 seconds
+  updateBadge();
+  setInterval(updateBadge, 10000);
+</script>
+
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

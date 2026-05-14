@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload CV — Recruitment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           color: #1a1a1a; min-height: 100vh; }
+    nav { background: #1a1a2e; padding: 0 2rem; height: 56px;
+          display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .nav-links a { color: #aaa; font-size: 14px; text-decoration: none; }
+    .nav-links a:hover { color: #fff; }
+    .nav-user { color: #888; font-size: 13px; }
+
+    .page { max-width: 580px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .back { font-size: 13px; color: #888; text-decoration: none;
+            display: inline-block; margin-bottom: 1.5rem; }
+    .back:hover { color: #1a1a2e; }
+    .page-title { font-size: 22px; font-weight: 500; margin-bottom: 0.4rem; }
+    .page-sub { font-size: 14px; color: #888; margin-bottom: 2rem; }
+
+    .card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3; padding: 2rem; }
+
+    .error-box { background: #fff0f0; border: 1px solid #fcc; border-radius: 8px;
+                 padding: 10px 14px; font-size: 13px; color: #c0392b; margin-bottom: 1.5rem; }
+
+    .field { margin-bottom: 1.5rem; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 6px; }
+    select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+             font-size: 14px; background: #fafafa; outline: none; font-family: inherit; }
+    select:focus { border-color: #1a1a2e; }
+
+    /* Upload area */
+    .upload-area { border: 2px dashed #ddd; border-radius: 10px; padding: 2.5rem 2rem;
+                   text-align: center; cursor: pointer; transition: all 0.15s;
+                   background: #fafafa; }
+    .upload-area:hover, .upload-area.drag-over { border-color: #1a1a2e; background: #f0f0f8; }
+    .upload-area input[type="file"] { display: none; }
+    .upload-icon { font-size: 32px; margin-bottom: 10px; }
+    .upload-text { font-size: 14px; color: #888; }
+    .upload-text strong { color: #1a1a2e; cursor: pointer; }
+    .upload-hint { font-size: 12px; color: #aaa; margin-top: 6px; }
+    .file-chosen { font-size: 13px; color: #2e7d32; font-weight: 500;
+                   margin-top: 10px; display: none; }
+
+    .btn-primary { background: #1a1a2e; color: #fff; border: none; width: 100%;
+                   padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
+                   cursor: pointer; font-family: inherit; margin-top: 0.5rem;
+                   transition: opacity 0.15s; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .processing { display: none; text-align: center; padding: 1rem 0;
+                  font-size: 14px; color: #888; }
+    .processing-dots::after {
+      content: ''; animation: dots 1.5s steps(3, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: '.'; }
+      33%  { content: '..'; }
+      66%  { content: '...'; }
+      100% { content: ''; }
+    }
+
+    .info-box { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px;
+                padding: 10px 14px; font-size: 13px; color: #2e7d32; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/dashboard" class="nav-logo">Recruitment</a>
+  <div class="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/jobs">Jobs</a>
+    <a href="/history">Candidates</a>
+  </div>
+  <span class="nav-user">{{ user.email }}</span>
+</nav>
+
+<div class="page">
+  <a href="/dashboard" class="back">← Back</a>
+  <h1 class="page-title">Upload a CV</h1>
+  <p class="page-sub">Manually screen a candidate against an open role.</p>
+
+  <div class="card">
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <div class="info-box">
+      Screening runs automatically after upload. You'll be notified when it's ready to review.
+    </div>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-form">
+
+      <div class="field">
+        <label for="job_id">Role to screen against</label>
+        <select name="job_id" id="job_id" required>
+          <option value="">Select a role...</option>
+          {% for job in jobs %}
+          <option value="{{ job.id }}"
+            {% if job.id == preselected_job_id %}selected{% endif %}>
+            {{ job.role_title }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>CV file</label>
+        <div class="upload-area" id="upload-area"
+             onclick="document.getElementById('cv_file').click()">
+          <input type="file" id="cv_file" name="cv_file"
+                 accept=".pdf,.docx,.doc" required
+                 onchange="onFileChosen(this)">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">
+            <strong>Click to upload</strong> or drag and drop
+          </div>
+          <div class="upload-hint">PDF or Word (.docx) — max 10MB</div>
+          <div class="file-chosen" id="file-chosen"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submit-btn">
+        Upload &amp; start screening
+      </button>
+      <div class="processing" id="processing">
+        Uploading and starting screening<span class="processing-dots"></span>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  function onFileChosen(input) {
+    const el = document.getElementById('file-chosen');
+    if (input.files && input.files[0]) {
+      el.textContent = '✓ ' + input.files[0].name;
+      el.style.display = 'block';
+    }
+  }
+
+  // Drag and drop
+  const area = document.getElementById('upload-area');
+  area.addEventListener('dragover', e => {
+    e.preventDefault();
+    area.classList.add('drag-over');
+  });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop', e => {
+    e.preventDefault();
+    area.classList.remove('drag-over');
+    const files = e.dataTransfer.files;
+    if (files[0]) {
+      document.getElementById('cv_file').files = files;
+      onFileChosen(document.getElementById('cv_file'));
+    }
+  });
+
+  // Show processing state on submit
+  document.getElementById('upload-form').addEventListener('submit', () => {
+    document.getElementById('submit-btn').style.display = 'none';
+    document.getElementById('processing').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>

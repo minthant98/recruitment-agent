@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: recruitment-saas
+    runtime: docker
+    plan: free
+    healthCheckPath: /auth/login
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: JWT_ALGORITHM
+        value: "HS256"
+      - key: APP_BASE_URL
+        sync: false
+      - key: HR_NOTIFICATION_EMAIL
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: LANGSMITH_PROJECT
+        sync: false

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ job.role_title }} — Recruitment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           color: #1a1a1a; min-height: 100vh; }
+
+    nav { background: #1a1a2e; padding: 0 2rem; height: 56px;
+          display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .nav-links a { color: #aaa; font-size: 14px; text-decoration: none; }
+    .nav-links a:hover { color: #fff; }
+    .nav-user { color: #888; font-size: 13px; }
+
+    .page { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .back { font-size: 13px; color: #888; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 4px; margin-bottom: 1rem; }
+    .back:hover { color: #1a1a2e; }
+
+    .job-header { display: flex; align-items: flex-start;
+                  justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .job-title { font-size: 22px; font-weight: 500; }
+    .job-sub { font-size: 14px; color: #888; margin-top: 4px; }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* View toggle */
+    .view-toggle { display: flex; border: 1px solid #ddd;
+                   border-radius: 8px; overflow: hidden; }
+    .view-toggle a { padding: 7px 16px; font-size: 13px; text-decoration: none;
+                     color: #666; background: #fff; }
+    .view-toggle a.active { background: #1a1a2e; color: #fff; }
+
+    .btn-primary { background: #1a1a2e; color: #fff; border: none; padding: 8px 16px;
+                   border-radius: 8px; font-size: 13px; font-weight: 500;
+                   cursor: pointer; text-decoration: none; }
+
+    /* ── Kanban ── */
+    .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .kanban-col { background: #efefed; border-radius: 10px; padding: 12px; min-height: 300px; }
+    .col-header { font-size: 12px; font-weight: 500; color: #666;
+                  text-transform: uppercase; letter-spacing: 0.05em;
+                  margin-bottom: 10px; display: flex; align-items: center;
+                  justify-content: space-between; }
+    .col-count { background: #fff; border-radius: 20px; padding: 1px 8px;
+                 font-size: 11px; color: #444; }
+
+    .cand-card { background: #fff; border-radius: 8px; border: 1px solid #e5e5e3;
+                 padding: 12px; margin-bottom: 8px; text-decoration: none;
+                 color: inherit; display: block; transition: border-color 0.15s; }
+    .cand-card:hover { border-color: #1a1a2e; }
+    .cand-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .cand-meta { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .cand-score { font-size: 18px; font-weight: 500; }
+    .cand-score-label { font-size: 11px; color: #aaa; }
+
+    .score-bar { height: 4px; background: #eee; border-radius: 2px;
+                 margin-top: 6px; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 2px; }
+
+    .tag-source { font-size: 11px; padding: 2px 8px; border-radius: 20px;
+                  background: #f0f0f0; color: #666; display: inline-block; margin-top: 6px; }
+
+    /* Awaiting / Unmatched columns */
+    .col-warn .col-header { color: #e65100; }
+    .col-warn .cand-card { border-left: 3px solid #ff9800; }
+
+    /* ── Table view ── */
+    .table-wrap { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3;
+                  overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 12px; font-weight: 500; color: #888;
+         padding: 12px 16px; border-bottom: 1px solid #f0f0ee;
+         text-transform: uppercase; letter-spacing: 0.04em; }
+    td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f5f5f3; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafaf8; }
+    td a { color: #1a1a2e; text-decoration: none; font-weight: 500; }
+    td a:hover { text-decoration: underline; }
+
+    .status-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .status-pending_review, .status-in_progress { background: #fff8e1; color: #f57f17; }
+    .status-shortlisted { background: #e8f5e9; color: #2e7d32; }
+    .status-hold { background: #e3f2fd; color: #1565c0; }
+    .status-rejected { background: #fce4ec; color: #c62828; }
+    .status-awaiting_confirmation { background: #fff3e0; color: #e65100; }
+    .status-unmatched { background: #f3e5f5; color: #6a1b9a; }
+
+    .empty-col { text-align: center; padding: 2rem; color: #ccc; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/jobs" class="nav-logo">Recruitment</a>
+  <div class="nav-links">
+    <a href="/jobs">Jobs</a>
+    <a href="/history">Candidates</a>
+    <a href="/dashboard">Dashboard</a>
+  </div>
+  <span class="nav-user">{{ user.email }}</span>
+</nav>
+
+<div class="page">
+  <a href="/jobs" class="back">← All jobs</a>
+
+  <div class="job-header">
+    <div>
+      <h1 class="job-title">{{ job.role_title }}</h1>
+      <div class="job-sub">{{ job.dept_name }}</div>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <a href="?view=kanban" class="{% if view == 'kanban' %}active{% endif %}">Board</a>
+        <a href="?view=table" class="{% if view == 'table' %}active{% endif %}">Table</a>
+      </div>
+      <a href="/upload?job_id={{ job.id }}" class="btn-primary">+ Upload CV</a>
+    </div>
+  </div>
+
+  {% if view == 'kanban' %}
+  <!-- ── Kanban view ── -->
+  <div class="kanban">
+
+    <!-- Pending review -->
+    <div class="kanban-col">
+      <div class="col-header">
+        Pending review
+        <span class="col-count">{{ pending | length }}</span>
+      </div>
+      {% for r in pending %}
+      <a href="/review/{{ r.id }}" class="cand-card">
+        <div class="cand-name">{{ r.candidate_name }}</div>
+        <div class="cand-meta">{{ r.source_label }} · {{ r.created_at[:10] }}</div>
+        {% if r.score is not none %}
+        <div class="cand-score">{{ r.score | int }}<span class="cand-score-label">/100</span></div>
+        <div class="score-bar">
+          <div class="score-fill" style="width:{{ r.score }}%;
+            background: {% if r.score >= 70 %}#4caf50{% elif r.score >= 50 %}#ff9800{% else %}#f44336{% endif %}">
+          </div>
+        </div>
+        {% endif %}
+        <span class="tag-source">{{ r.source_label }}</span>
+      </a>
+      {% else %}
+      <div class="empty-col">None</div>
+      {% endfor %}
+    </div>
+
+    <!-- Shortlisted -->
+    <div class="kanban-col">
+      <div class="col-header">
+        Shortlisted
+        <span class="col-count">{{ shortlisted | length }}</span>
+      </div>
+      {% for r in shortlisted %}
+      <a href="/review/{{ r.id }}" class="cand-card">
+        <div class="cand-name">{{ r.candidate_name }}</div>
+        <div class="cand-meta">{{ r.source_label }} · {{ r.created_at[:10] }}</div>
+        {% if r.score is not none %}
+        <div class="cand-score" style="color:#2e7d32">{{ r.score | int }}<span class="cand-score-label">/100</span></div>
+        {% endif %}
+      </a>
+      {% else %}
+      <div class="empty-col">None</div>
+      {% endfor %}
+    </div>
+
+    <!-- On hold -->
+    <div class="kanban-col">
+      <div class="col-header">
+        On hold
+        <span class="col-count">{{ on_hold | length }}</span>
+      </div>
+      {% for r in on_hold %}
+      <a href="/review/{{ r.id }}" class="cand-card">
+        <div class="cand-name">{{ r.candidate_name }}</div>
+        <div class="cand-meta">{{ r.source_label }} · {{ r.created_at[:10] }}</div>
+        {% if r.score is not none %}
+        <div class="cand-score" style="color:#1565c0">{{ r.score | int }}<span class="cand-score-label">/100</span></div>
+        {% endif %}
+      </a>
+      {% else %}
+      <div class="empty-col">None</div>
+      {% endfor %}
+    </div>
+
+    <!-- Rejected -->
+    <div class="kanban-col">
+      <div class="col-header">
+        Rejected
+        <span class="col-count">{{ rejected | length }}</span>
+      </div>
+      {% for r in rejected %}
+      <a href="/review/{{ r.id }}" class="cand-card">
+        <div class="cand-name">{{ r.candidate_name }}</div>
+        <div class="cand-meta">{{ r.source_label }} · {{ r.created_at[:10] }}</div>
+        {% if r.score is not none %}
+        <div class="cand-score" style="color:#c62828">{{ r.score | int }}<span class="cand-score-label">/100</span></div>
+        {% endif %}
+      </a>
+      {% else %}
+      <div class="empty-col">None</div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  {% if awaiting_confirmation or unmatched %}
+  <div style="margin-top:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+    <!-- Awaiting confirmation -->
+    <div class="kanban-col col-warn">
+      <div class="col-header">
+        Needs job confirmation
+        <span class="col-count">{{ awaiting_confirmation | length }}</span>
+      </div>
+      {% for r in awaiting_confirmation %}
+      <a href="/confirm/{{ r.id }}" class="cand-card">
+        <div class="cand-name">{{ r.candidate_name }}</div>
+        <div class="cand-meta">{{ r.confidence_pct }} match confidence</div>
+      </a>
+      {% else %}
+      <div class="empty-col">None</div>
+      {% endfor %}
+    </div>
+
+    <!-- Unmatched -->
+    <div class="kanban-col col-warn">
+      <div class="col-header">
+        Unmatched
+        <span class="col-count">{{ unmatched | length }}</span>
+      </div>
+      {% for r in unmatched %}
+      <a href="/assign/{{ r.id }}" class="cand-card">
+        <div class="cand-name">{{ r.candidate_name }}</div>
+        <div class="cand-meta">Needs manual assignment</div>
+      </a>
+      {% else %}
+      <div class="empty-col">None</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- ── Table view ── -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Candidate</th>
+          <th>Score</th>
+          <th>Status</th>
+          <th>Source</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in table_rows %}
+        <tr>
+          <td><a href="/review/{{ r.id }}">{{ r.candidate_name }}</a></td>
+          <td>
+            {% if r.score is not none %}
+            <strong>{{ r.score | int }}</strong>/100
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <span class="status-badge status-{{ r.status }}">
+              {{ r.status | replace('_', ' ') | title }}
+            </span>
+          </td>
+          <td>{{ r.source_label }}</td>
+          <td style="color:#888">{{ r.created_at[:10] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:#aaa;padding:2rem">
+          No candidates yet
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

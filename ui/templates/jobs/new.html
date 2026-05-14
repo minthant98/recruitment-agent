@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add job — Recruitment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           color: #1a1a1a; min-height: 100vh; }
+    nav { background: #1a1a2e; padding: 0 2rem; height: 56px;
+          display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .nav-links a { color: #aaa; font-size: 14px; text-decoration: none; }
+    .nav-links a:hover { color: #fff; }
+    .nav-user { color: #888; font-size: 13px; }
+
+    .page { max-width: 600px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .back { font-size: 13px; color: #888; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 4px; margin-bottom: 1.5rem; }
+    .back:hover { color: #1a1a2e; }
+    .page-title { font-size: 22px; font-weight: 500; margin-bottom: 2rem; }
+
+    .card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3;
+            padding: 2rem; }
+    .field { margin-bottom: 1.5rem; }
+    label { display: block; font-size: 13px; font-weight: 500;
+            color: #444; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; color: #1a1a1a;
+            background: #fafafa; outline: none; font-family: inherit; }
+    input:focus, select:focus { border-color: #1a1a2e; background: #fff; }
+
+    /* File upload area */
+    .upload-area { border: 2px dashed #ddd; border-radius: 8px; padding: 2rem;
+                   text-align: center; cursor: pointer; transition: border-color 0.15s;
+                   background: #fafafa; }
+    .upload-area:hover, .upload-area.drag-over { border-color: #1a1a2e; background: #f0f0f8; }
+    .upload-area input[type="file"] { display: none; }
+    .upload-label { font-size: 14px; color: #888; cursor: pointer; }
+    .upload-label strong { color: #1a1a2e; }
+    .file-name { font-size: 13px; color: #1a1a2e; margin-top: 8px;
+                 font-weight: 500; display: none; }
+
+    .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+    .btn-primary { background: #1a1a2e; color: #fff; border: none; width: 100%;
+                   padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
+                   cursor: pointer; margin-top: 0.5rem; font-family: inherit; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .processing { display: none; text-align: center; padding: 1rem;
+                  font-size: 14px; color: #888; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/jobs" class="nav-logo">Recruitment</a>
+  <div class="nav-links">
+    <a href="/jobs">Jobs</a>
+    <a href="/history">Candidates</a>
+    <a href="/dashboard">Dashboard</a>
+  </div>
+  <span class="nav-user">{{ user.email }}</span>
+</nav>
+
+<div class="page">
+  <a href="/jobs" class="back">← Back to jobs</a>
+  <h1 class="page-title">Add a new job</h1>
+
+  <div class="card">
+    <form method="POST" action="/jobs/new" enctype="multipart/form-data" id="job-form">
+
+      <div class="field">
+        <label for="role_title">Job title</label>
+        <input type="text" id="role_title" name="role_title"
+               placeholder="e.g. Senior Data Analyst" required>
+        <div class="hint">This will be auto-confirmed from the JD after upload.</div>
+      </div>
+
+      <div class="field">
+        <label for="dept_id">Department</label>
+        <select id="dept_id" name="dept_id" required>
+          <option value="">Select department...</option>
+          {% for dept in departments %}
+          <option value="{{ dept.id }}">{{ dept.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="employment_type">Employment type</label>
+        <select id="employment_type" name="employment_type">
+          <option value="Full-time">Full-time</option>
+          <option value="Part-time">Part-time</option>
+          <option value="Contract">Contract</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Job description file</label>
+        <div class="upload-area" id="upload-area"
+             onclick="document.getElementById('jd_file').click()">
+          <input type="file" id="jd_file" name="jd_file"
+                 accept=".docx,.pdf" required
+                 onchange="showFileName(this)">
+          <label class="upload-label" for="jd_file">
+            <strong>Click to upload</strong> or drag and drop<br>
+            Word (.docx) or PDF
+          </label>
+          <div class="file-name" id="file-name"></div>
+        </div>
+        <div class="hint">
+          The JD will be processed by AI to extract screening criteria automatically.
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submit-btn">
+        Add job
+      </button>
+      <div class="processing" id="processing">
+        Processing JD — this takes 10–20 seconds...
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showFileName(input) {
+    const nameEl = document.getElementById('file-name');
+    if (input.files && input.files[0]) {
+      nameEl.textContent = '✓ ' + input.files[0].name;
+      nameEl.style.display = 'block';
+    }
+  }
+
+  // Drag and drop
+  const area = document.getElementById('upload-area');
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop', e => {
+    e.preventDefault();
+    area.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      document.getElementById('jd_file').files = e.dataTransfer.files;
+      showFileName(document.getElementById('jd_file'));
+    }
+  });
+
+  // Show processing state on submit
+  document.getElementById('job-form').addEventListener('submit', () => {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').style.display = 'none';
+    document.getElementById('processing').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>
