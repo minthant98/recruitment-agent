@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screening in progress — Recruitment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           min-height: 100vh; display: flex; align-items: center;
+           justify-content: center; padding: 1rem; color: #1a1a1a; }
+
+    .card { background: #fff; border-radius: 16px; border: 1px solid #e5e5e3;
+            padding: 3rem 2.5rem; max-width: 480px; width: 100%; text-align: center; }
+
+    .spinner-wrap { margin-bottom: 2rem; }
+    .spinner {
+      width: 56px; height: 56px; margin: 0 auto;
+      border: 3px solid #e5e5e3;
+      border-top-color: #1a1a2e;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .spinner.done {
+      border-color: #10B981;
+      border-top-color: #10B981;
+      animation: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .title { font-size: 20px; font-weight: 500; margin-bottom: 0.5rem; }
+    .subtitle { font-size: 14px; color: #888; margin-bottom: 2.5rem; line-height: 1.6; }
+
+    /* Steps */
+    .steps { text-align: left; display: flex; flex-direction: column; gap: 0; }
+    .step { display: flex; align-items: center; gap: 12px; padding: 12px 0;
+            border-bottom: 1px solid #f5f5f3; }
+    .step:last-child { border-bottom: none; }
+
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+                display: flex; align-items: center; justify-content: center; font-size: 13px; }
+    .step-dot.waiting  { background: #f5f5f3; color: #ccc; border: 1.5px solid #e5e5e3; }
+    .step-dot.active   { background: #e8eaf6; border: 1.5px solid #1a1a2e;
+                         animation: dotPulse 1.2s ease-in-out infinite; }
+    .step-dot.complete { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; }
+
+    @keyframes dotPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(26,26,46,0.2); }
+      50%       { box-shadow: 0 0 0 6px rgba(26,26,46,0); }
+    }
+
+    .step-label { font-size: 14px; font-weight: 500; }
+    .step-sub   { font-size: 12px; color: #aaa; margin-top: 2px; }
+    .step.active   .step-label { color: #1a1a2e; }
+    .step.complete .step-label { color: #2e7d32; }
+    .step.waiting  .step-label { color: #bbb; }
+
+    .done-msg { margin-top: 2rem; padding: 1rem; background: #e8f5e9;
+                border-radius: 10px; display: none; }
+    .done-msg.show { display: block; }
+    .done-msg p { font-size: 14px; color: #2e7d32; font-weight: 500; margin-bottom: 0.75rem; }
+    .btn-review { display: inline-block; background: #1a1a2e; color: #fff;
+                  padding: 10px 24px; border-radius: 8px; font-size: 14px;
+                  font-weight: 500; text-decoration: none; }
+    .btn-review:hover { opacity: 0.88; }
+
+    .fallback { margin-top: 1.5rem; font-size: 13px; color: #aaa; display: none; }
+    .fallback.show { display: block; }
+    .fallback a { color: #1a1a2e; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner-wrap">
+      <div class="spinner" id="spinner"></div>
+    </div>
+
+    <div class="title" id="title">Screening your candidate</div>
+    <div class="subtitle">This takes about 30–60 seconds. You can wait here or check the dashboard later.</div>
+
+    <div class="steps">
+      <div class="step waiting" id="step-parsing">
+        <div class="step-dot waiting" id="dot-parsing">1</div>
+        <div>
+          <div class="step-label">Parsing CV</div>
+          <div class="step-sub">Extracting candidate information</div>
+        </div>
+      </div>
+      <div class="step waiting" id="step-screening">
+        <div class="step-dot waiting" id="dot-screening">2</div>
+        <div>
+          <div class="step-label">AI Screening</div>
+          <div class="step-sub">Scoring against job criteria</div>
+        </div>
+      </div>
+      <div class="step waiting" id="step-reviewing">
+        <div class="step-dot waiting" id="dot-reviewing">3</div>
+        <div>
+          <div class="step-label">Judge Review</div>
+          <div class="step-sub">Second AI checks the screening</div>
+        </div>
+      </div>
+      <div class="step waiting" id="step-done">
+        <div class="step-dot waiting" id="dot-done">4</div>
+        <div>
+          <div class="step-label">Ready for HR review</div>
+          <div class="step-sub">Waiting for your decision</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="done-msg" id="done-msg">
+      <p>✅ Screening complete — candidate is ready for your review.</p>
+      <a href="#" class="btn-review" id="review-btn">Review candidate →</a>
+    </div>
+
+    <div class="fallback" id="fallback">
+      Taking longer than expected?
+      <a href="/dashboard">Go to dashboard</a> to check manually.
+    </div>
+  </div>
+
+<script>
+  const THREAD_ID  = "{{ thread_id }}";
+  const STAGES     = ["parsing", "screening", "reviewing", "done"];
+  let   pollCount  = 0;
+  let   currentStage = -1;
+
+  function setStage(stage) {
+    const idx = STAGES.indexOf(stage);
+    if (idx <= currentStage) return;
+    currentStage = idx;
+
+    STAGES.forEach((s, i) => {
+      const stepEl = document.getElementById("step-" + s);
+      const dotEl  = document.getElementById("dot-" + s);
+      if (i < idx) {
+        stepEl.className = "step complete";
+        dotEl.className  = "step-dot complete";
+        dotEl.textContent = "✓";
+      } else if (i === idx) {
+        stepEl.className = "step active";
+        dotEl.className  = "step-dot active";
+        dotEl.textContent = (i + 1);
+      } else {
+        stepEl.className = "step waiting";
+        dotEl.className  = "step-dot waiting";
+        dotEl.textContent = (i + 1);
+      }
+    });
+  }
+
+  function showDone(runId) {
+    document.getElementById("spinner").classList.add("done");
+    document.getElementById("title").textContent = "Screening complete";
+
+    setStage("done");
+    // Mark done step as complete too
+    const doneStep = document.getElementById("step-done");
+    const doneDot  = document.getElementById("dot-done");
+    doneStep.className = "step complete";
+    doneDot.className  = "step-dot complete";
+    doneDot.textContent = "✓";
+
+    const doneMsg   = document.getElementById("done-msg");
+    const reviewBtn = document.getElementById("review-btn");
+    doneMsg.classList.add("show");
+    if (runId) {
+      reviewBtn.href = "/review/" + runId;
+    } else {
+      reviewBtn.href = "/dashboard";
+      reviewBtn.textContent = "Go to dashboard →";
+    }
+  }
+
+  async function poll() {
+    pollCount++;
+
+    // Show fallback after 90 seconds
+    if (pollCount > 45) {
+      document.getElementById("fallback").classList.add("show");
+    }
+
+    // Stop polling after 3 minutes
+    if (pollCount > 90) {
+      clearInterval(poller);
+      return;
+    }
+
+    try {
+      const res  = await fetch(`/api/processing-status?thread=${encodeURIComponent(THREAD_ID)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      setStage(data.stage);
+
+      if (data.done) {
+        clearInterval(poller);
+        showDone(data.run_id);
+      }
+    } catch(e) {
+      // silently fail
+    }
+  }
+
+  // Start at parsing stage immediately
+  setStage("parsing");
+
+  // Poll every 2 seconds
+  const poller = setInterval(poll, 2000);
+  poll(); // first call immediately
+</script>
+</body>
+</html>

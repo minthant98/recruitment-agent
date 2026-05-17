@@ -194,3 +194,76 @@ async def accept_invite(
         url="/auth/login?welcome=1", status_code=status.HTTP_302_FOUND
     )
     return response
+
+@router.get("/signup", response_class=HTMLResponse)
+async def signup_page(request: Request):
+    """Show the signup form."""
+    return templates.TemplateResponse(request, "auth/signup.html", {})
+ 
+ 
+@router.post("/signup")
+async def signup(
+    request: Request,
+    company_name: str = Form(...),
+    email:        str = Form(...),
+    password:     str = Form(...),
+):
+    """
+    Create a new organisation and admin user in one step.
+    Auto logs the user in and redirects to onboarding.
+    """
+    db = get_db()
+ 
+    # Check email not already taken
+    existing = db.table("users").select("id").eq(
+        "email", email.lower().strip()
+    ).execute()
+    if existing.data:
+        return templates.TemplateResponse(
+            request, "auth/signup.html",
+            {"error": "An account with this email already exists."},
+            status_code=400,
+        )
+ 
+    # Create organisation
+    org_result = db.table("organizations").insert({
+        "name":               company_name.strip(),
+        "onboarding_complete": False,
+    }).execute()
+    org_id = org_result.data[0]["id"]
+ 
+    # Create admin user
+    user_result = db.table("users").insert({
+        "org_id":          org_id,
+        "email":           email.lower().strip(),
+        "hashed_password": hash_password(password),
+        "role":            "admin",
+    }).execute()
+    user = user_result.data[0]
+ 
+    # Issue JWT and log straight in
+    token = create_access_token(
+        user_id=user["id"],
+        org_id=org_id,
+        email=user["email"],
+        role=user["role"],
+    )
+ 
+    # Redirect to onboarding
+    org = db.table("organizations").select(
+        "onboarding_complete"
+    ).eq("id", user["org_id"]).execute()
+    onboarding_done = org.data[0].get("onboarding_complete") if org.data else True
+
+    redirect_url = "/dashboard" if onboarding_done else "/onboarding"
+    response = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
+    
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=False,   # set True in production
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    return response

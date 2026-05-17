@@ -84,8 +84,8 @@
 
       <div class="field">
         <label for="dept_id">Department</label>
-        <select id="dept_id" name="dept_id" required>
-          <option value="">Select department...</option>
+        <select id="dept_id" name="dept_id">
+          <option value="">No department (optional)</option>
           {% for dept in departments %}
           <option value="{{ dept.id }}">{{ dept.name }}</option>
           {% endfor %}

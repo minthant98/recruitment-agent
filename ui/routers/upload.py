@@ -12,11 +12,13 @@ Mount in ui/app.py:
 """
 
 import os
+import uuid
+import threading
 import tempfile
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from auth.dependencies import CurrentUser, require_user
@@ -34,7 +36,7 @@ def set_upload_trigger_callback(fn):
     _trigger_callback = fn
 
 
-# ── Routes ───────────────────────────────────────────────────────
+# ── Upload form ───────────────────────────────────────────────────
 
 @router.get("/upload", response_class=HTMLResponse)
 async def upload_page(
@@ -42,19 +44,16 @@ async def upload_page(
     job_id: str = None,
     user: CurrentUser = Depends(require_user),
 ):
-    """
-    Show the upload form.
-    Optional ?job_id= pre-selects a job — used from the job detail page.
-    """
+    """Show the upload form. Optional ?job_id= pre-selects a job."""
     db = get_db()
     jobs = db.table("job_descriptions").select(
         "id, role_title"
     ).eq("org_id", user.org_id).eq("status", "OPEN").order("role_title").execute().data
 
     return templates.TemplateResponse(request, "upload.html", {
-        "jobs": jobs,
+        "jobs":               jobs,
         "preselected_job_id": job_id or "",
-        "user": user,
+        "user":               user,
     })
 
 
@@ -67,29 +66,24 @@ async def upload_cv(
 ):
     """
     Receive uploaded CV, save to temp file, trigger pipeline.
-
-    Key difference from email intake:
-    - No classifier run
-    - No confidence scoring
-    - match_status = MANUALLY_ASSIGNED immediately
-    - source = MANUAL_UPLOAD
-    - Recruiter already chose the job — go straight to ingest
+    Redirects to processing page so recruiter sees live progress.
     """
+    db = get_db()
+
     # Validate file type
     filename = cv_file.filename or ""
     suffix = Path(filename).suffix.lower()
     if suffix not in (".pdf", ".docx", ".doc"):
-        jobs = get_db().table("job_descriptions").select(
+        jobs = db.table("job_descriptions").select(
             "id, role_title"
         ).eq("org_id", user.org_id).eq("status", "OPEN").execute().data
-
         return templates.TemplateResponse(
             request, "upload.html",
             {
-                "jobs": jobs,
+                "jobs":               jobs,
                 "preselected_job_id": job_id,
-                "user": user,
-                "error": "Only PDF or Word (.docx) files are supported.",
+                "user":               user,
+                "error":              "Only PDF or Word (.docx) files are supported.",
             },
             status_code=400,
         )
@@ -106,7 +100,6 @@ async def upload_cv(
         tmp_path = tmp.name
 
     # Fetch job title for state
-    db = get_db()
     job = db.table("job_descriptions").select(
         "role_title"
     ).eq("id", job_id).execute().data
@@ -114,36 +107,31 @@ async def upload_cv(
 
     cv_file_type = suffix.lstrip(".")  # pdf | docx | doc
 
-    # Build initial state — same shape as email pipeline
-    # but with manual upload fields set directly
+    # Unique thread ID for this upload
+    thread_id = f"manual_{uuid.uuid4().hex}"
+
+    # Build initial state
     initial_state = {
-        # Email fields — not applicable for manual upload
-        "email_id":             f"manual_{os.path.basename(tmp_path)}",
+        "email_id":             thread_id,
         "email_subject":        f"Manual upload — {job_title}",
         "email_sender":         user.email,
         "email_body":           "",
-
-        # CV fields — set directly, classifier skipped
         "attachment_path":      tmp_path,
         "cv_file_type":         cv_file_type,
         "has_cv":               True,
         "matched_jd_id":        job_id,
         "matched_jd_title":     job_title,
-
-        # Confidence — not applicable, recruiter chose the job
         "confidence_score":     1.0,
         "match_status":         "MANUALLY_ASSIGNED",
         "top_jd_matches":       [],
         "source":               "MANUAL_UPLOAD",
-
-        # Pipeline state — reset
         "discard_reason":       None,
         "candidate_id":         "",
         "run_id":               "",
         "raw_cv_text":          "",
         "candidate_name":       "",
         "candidate_email":      "",
-        "current_node":         "ingest",   # start at ingest, skip classifier
+        "current_node":         "ingest",
         "screening_result":     None,
         "composite_score":      None,
         "recommendation":       None,
@@ -160,20 +148,81 @@ async def upload_cv(
         "org_id":               user.org_id,
     }
 
-    import threading
-
-# Run pipeline in background thread — returns immediately
-# Dashboard live badge updates when screening completes
+    # Run pipeline in background thread — returns immediately
     if _trigger_callback:
-        thread = threading.Thread(
+        t = threading.Thread(
             target=_trigger_callback,
             args=(initial_state,),
             daemon=True,
         )
-        thread.start()
+        t.start()
         print(f"[Upload] Pipeline started in background thread")
     else:
         print("[Upload] Warning: no pipeline trigger callback set")
 
-    return RedirectResponse(url="/dashboard", status_code=302)
+    # Redirect to processing page
+    return RedirectResponse(url=f"/processing?thread={thread_id}", status_code=302)
 
+
+# ── Processing page ───────────────────────────────────────────────
+
+@router.get("/processing", response_class=HTMLResponse)
+async def processing_page(
+    request: Request,
+    thread: str,
+    user: CurrentUser = Depends(require_user),
+):
+    """Live progress page shown while pipeline runs in background."""
+    return templates.TemplateResponse(request, "processing.html", {
+        "user":      user,
+        "thread_id": thread,
+    })
+
+
+@router.get("/api/processing-status")
+async def processing_status(
+    thread: str,
+    user: CurrentUser = Depends(require_user),
+):
+    """
+    Polled every 2 seconds by processing.html.
+    Returns current pipeline stage and whether it is ready for HR review.
+    """
+    db = get_db()
+
+    # Find candidate by source_email_id (set to thread_id on upload)
+    candidates = db.table("candidates").select(
+        "id, source_email_id"
+    ).eq("org_id", user.org_id).execute().data
+
+    run = None
+    for c in candidates:
+        if c.get("source_email_id") == thread:
+            runs = db.table("pipeline_runs").select(
+                "id, current_node, status"
+            ).eq("candidate_id", c["id"]).eq("org_id", user.org_id).execute().data
+            if runs:
+                run = runs[0]
+                break
+
+    if not run:
+        return JSONResponse({"stage": "parsing", "done": False, "run_id": None})
+
+    node   = run["current_node"]
+    status = run["status"]
+
+    stage_map = {
+        "classifier":    "parsing",
+        "ingest":        "parsing",
+        "screening":     "screening",
+        "judge":         "reviewing",
+        "hitl_pending":  "done",
+        "hitl_reviewed": "done",
+    }
+    stage = stage_map.get(node, "parsing")
+
+    return JSONResponse({
+        "stage":  stage,
+        "done":   status == "pending_review",
+        "run_id": run["id"] if status == "pending_review" else None,
+    })

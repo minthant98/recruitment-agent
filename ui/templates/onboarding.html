@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get started — Recruitment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           color: #1a1a1a; min-height: 100vh; }
+
+    nav { background: #1a1a2e; padding: 0 2rem; height: 56px;
+          display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+    .nav-user  { color: #888; font-size: 13px; }
+
+    .page { max-width: 640px; margin: 0 auto; padding: 3rem 1.5rem; }
+
+    .welcome { margin-bottom: 2.5rem; }
+    .welcome h1 { font-size: 24px; font-weight: 500; margin-bottom: 0.5rem; }
+    .welcome p  { font-size: 14px; color: #888; line-height: 1.6; }
+
+    /* Progress bar */
+    .progress-wrap { margin-bottom: 2.5rem; }
+    .progress-label { display: flex; justify-content: space-between;
+                      font-size: 13px; color: #888; margin-bottom: 8px; }
+    .progress-track { height: 6px; background: #e5e5e3; border-radius: 3px; overflow: hidden; }
+    .progress-fill  { height: 100%; border-radius: 3px; background: #1a1a2e;
+                      transition: width 0.4s ease; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
+
+    .step { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3;
+            padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    .step.done { opacity: 0.7; }
+    .step.active { border-color: #1a1a2e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    .step-icon { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+                 display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .step-icon.done    { background: #e8f5e9; }
+    .step-icon.active  { background: #e8eaf6; }
+    .step-icon.pending { background: #f5f5f3; }
+
+    .step-body { flex: 1; }
+    .step-title { font-size: 15px; font-weight: 500; margin-bottom: 3px; }
+    .step-sub   { font-size: 13px; color: #888; }
+    .step.done .step-title { text-decoration: line-through; color: #aaa; }
+
+    .step-action { flex-shrink: 0; }
+    .btn { display: inline-block; padding: 8px 18px; border-radius: 8px;
+           font-size: 13px; font-weight: 500; text-decoration: none;
+           transition: opacity 0.15s; }
+    .btn-primary { background: #1a1a2e; color: #fff; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-done { background: #e8f5e9; color: #2e7d32; cursor: default; font-size: 12px; }
+
+    .skip-link { text-align: center; }
+    .skip-link a { font-size: 13px; color: #aaa; text-decoration: none; }
+    .skip-link a:hover { color: #1a1a2e; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/dashboard" class="nav-logo">Recruitment</a>
+  <span class="nav-user">{{ user.email }}</span>
+</nav>
+
+<div class="page">
+
+  <div class="welcome">
+    <h1>Welcome to Recruitment, {{ org_name }} 👋</h1>
+    <p>Let's get you set up in 3 steps. It takes less than 5 minutes.</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Getting started</span>
+      <span>{{ completed }} of {{ total }} complete</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" style="width: {{ pct }}%"></div>
+    </div>
+  </div>
+
+  <div class="steps">
+
+    <!-- Step 1: Add a job -->
+    <div class="step {% if has_job %}done{% else %}active{% endif %}">
+      <div class="step-icon {% if has_job %}done{% elif not has_job %}active{% else %}pending{% endif %}">
+        {% if has_job %}✅{% else %}📋{% endif %}
+      </div>
+      <div class="step-body">
+        <div class="step-title">Add your first job</div>
+        <div class="step-sub">Upload a job description so the AI knows what to screen for.</div>
+      </div>
+      <div class="step-action">
+        {% if has_job %}
+        <span class="btn btn-done">Done</span>
+        {% else %}
+        <a href="/jobs/new" class="btn btn-primary">Add job →</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Step 2: Upload a CV -->
+    <div class="step {% if has_cv %}done{% elif has_job %}active{% else %}pending{% endif %}">
+      <div class="step-icon {% if has_cv %}done{% elif has_job %}active{% else %}pending{% endif %}">
+        {% if has_cv %}✅{% else %}📄{% endif %}
+      </div>
+      <div class="step-body">
+        <div class="step-title">Upload your first CV</div>
+        <div class="step-sub">The AI will screen it against your job and score the candidate.</div>
+      </div>
+      <div class="step-action">
+        {% if has_cv %}
+        <span class="btn btn-done">Done</span>
+        {% elif has_job %}
+        <a href="/upload" class="btn btn-primary">Upload CV →</a>
+        {% else %}
+        <span class="btn" style="background:#f5f5f3;color:#ccc;cursor:default">Upload CV</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Step 3: Review a candidate -->
+    <div class="step {% if has_review %}done{% elif has_cv %}active{% else %}pending{% endif %}">
+      <div class="step-icon {% if has_review %}done{% elif has_cv %}active{% else %}pending{% endif %}">
+        {% if has_review %}✅{% else %}👤{% endif %}
+      </div>
+      <div class="step-body">
+        <div class="step-title">Review your first candidate</div>
+        <div class="step-sub">Shortlist, hold, or reject based on the AI's recommendation.</div>
+      </div>
+      <div class="step-action">
+        {% if has_review %}
+        <span class="btn btn-done">Done</span>
+        {% elif has_cv %}
+        <a href="/dashboard" class="btn btn-primary">Go to dashboard →</a>
+        {% else %}
+        <span class="btn" style="background:#f5f5f3;color:#ccc;cursor:default">Review</span>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="skip-link">
+    <a href="/dashboard">Skip for now — go to dashboard</a>
+  </div>
+
+</div>
+
+</body>
+</html>

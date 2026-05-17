@@ -62,3 +62,5 @@ class AgentState(TypedDict):
     top_jd_matches:    list              # [{jd, score, confidence}] for MEDIUM tier UI
     
     org_id: str 
+    
+    source: str                          # EMAIL | MANUAL_UPLOAD

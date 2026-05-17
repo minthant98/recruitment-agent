@@ -42,6 +42,9 @@ app.include_router(dashboard_router)
 from ui.routers.upload import router as upload_router
 app.include_router(upload_router)
 
+from ui.routers.onboarding import router as onboarding_router
+app.include_router(onboarding_router)
+
 # ── Resume callback ───────────────────────────────────────────────
 # Set by main.py when running locally with Gmail polling.
 # Not set on Render — HITL decisions are recorded but pipeline
@@ -57,7 +60,11 @@ def set_resume_callback(fn):
 # ── Root redirect ─────────────────────────────────────────────────
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/dashboard", status_code=302)
+    return RedirectResponse(url="/landing", status_code=302)
+
+@app.get("/landing", response_class=HTMLResponse)
+async def landing_page(request: Request):
+    return templates.TemplateResponse(request, "landing.html", {})
 
 
 # ── Helpers ───────────────────────────────────────────────────────

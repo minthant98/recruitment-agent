@@ -17,20 +17,12 @@ from nodes.scheduling import scheduling_node
 # ── Routing functions ─────────────────────────────────────────────
 
 def route_after_classifier(state: AgentState) -> str:
-    """
-    Route based on CV presence and JD match confidence tier.
-
-    HIGH confidence   → ingest (screening runs immediately)
-    MEDIUM confidence → confirmation_pause (recruiter confirms job)
-    LOW confidence    → unmatched_queue (recruiter assigns manually)
-    No CV             → discard
-    """
     if not state.get("has_cv"):
         return "discard"
 
     match_status = state.get("match_status", "UNMATCHED")
 
-    if match_status == "AUTO_ASSIGNED":
+    if match_status in ("AUTO_ASSIGNED", "MANUALLY_ASSIGNED"):
         return "ingest"
     elif match_status == "AWAITING_CONFIRMATION":
         return "confirmation_pause"

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recruitment — AI-powered CV screening for SMEs</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0F1C2E;
+      --navy-mid: #1A2E46;
+      --accent: #3B82F6;
+      --green: #10B981;
+      --text: #0F172A;
+      --gray-50: #F8FAFC;
+      --gray-100: #F1F5F9;
+      --gray-400: #94A3B8;
+      --gray-600: #475569;
+      --border: #E2E8F0;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; color: var(--text);
+           background: #fff; line-height: 1.6; }
+
+    /* ── Nav ── */
+    .nav { display: flex; align-items: center; justify-content: space-between;
+           padding: 0 2rem; height: 64px; border-bottom: 1px solid var(--border);
+           position: sticky; top: 0; background: #fff; z-index: 100; }
+    .nav-logo { font-size: 16px; font-weight: 500; color: var(--navy); text-decoration: none; }
+    .nav-links { display: flex; gap: 1rem; align-items: center; }
+    .nav-link { font-size: 14px; color: var(--gray-600); text-decoration: none; padding: 8px 16px;
+                border-radius: 8px; }
+    .nav-link:hover { background: var(--gray-100); }
+    .btn-nav { background: var(--navy); color: #fff; font-size: 14px; font-weight: 500;
+               padding: 9px 20px; border-radius: 8px; text-decoration: none; }
+    .btn-nav:hover { opacity: 0.88; }
+
+    /* ── Hero ── */
+    .hero { max-width: 900px; margin: 0 auto; padding: 6rem 2rem 5rem;
+            text-align: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: #EFF6FF;
+                  color: #1D4ED8; font-size: 12px; font-weight: 500; padding: 4px 12px;
+                  border-radius: 20px; margin-bottom: 1.5rem; }
+    .hero h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 600;
+               letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem;
+               color: var(--navy); }
+    .hero h1 span { color: var(--accent); }
+    .hero p { font-size: 18px; color: var(--gray-600); max-width: 560px;
+              margin: 0 auto 2.5rem; line-height: 1.7; }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--navy); color: #fff; font-size: 15px; font-weight: 500;
+                   padding: 13px 28px; border-radius: 10px; text-decoration: none;
+                   display: inline-block; transition: opacity 0.15s; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary { background: #fff; color: var(--navy); font-size: 15px; font-weight: 500;
+                     padding: 13px 28px; border-radius: 10px; text-decoration: none;
+                     border: 1.5px solid var(--border); display: inline-block; }
+    .btn-secondary:hover { border-color: var(--navy); }
+
+    /* ── How it works ── */
+    .section { max-width: 1000px; margin: 0 auto; padding: 5rem 2rem; }
+    .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+                     text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-size: clamp(24px, 4vw, 36px); font-weight: 600;
+                     letter-spacing: -0.02em; color: var(--navy); margin-bottom: 1rem; }
+    .section-sub { font-size: 16px; color: var(--gray-600); max-width: 520px; line-height: 1.7; }
+
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr);
+                  gap: 2rem; margin-top: 3rem; }
+    .step-card { padding: 1.5rem; }
+    .step-num { width: 36px; height: 36px; background: var(--navy); color: #fff;
+                border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                font-size: 14px; font-weight: 600; margin-bottom: 1rem; }
+    .step-card h3 { font-size: 16px; font-weight: 500; margin-bottom: 0.5rem; color: var(--navy); }
+    .step-card p  { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+
+    /* ── Features ── */
+    .features-bg { background: var(--gray-50); border-top: 1px solid var(--border);
+                   border-bottom: 1px solid var(--border); }
+    .features-grid { display: grid; grid-template-columns: repeat(2, 1fr);
+                     gap: 1.5rem; margin-top: 3rem; }
+    .feature-card { background: #fff; border: 1px solid var(--border); border-radius: 12px;
+                    padding: 1.5rem 2rem; }
+    .feature-icon { font-size: 28px; margin-bottom: 0.75rem; }
+    .feature-card h3 { font-size: 16px; font-weight: 500; color: var(--navy); margin-bottom: 0.5rem; }
+    .feature-card p  { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+
+    /* ── Scoring ── */
+    .scoring-grid { display: grid; grid-template-columns: repeat(4, 1fr);
+                    gap: 1rem; margin-top: 3rem; }
+    .score-card { background: #fff; border: 1px solid var(--border); border-radius: 10px;
+                  padding: 1.25rem; text-align: center; }
+    .score-pct { font-size: 32px; font-weight: 600; color: var(--navy); letter-spacing: -0.02em; }
+    .score-name { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+
+    /* ── CTA ── */
+    .cta-section { background: var(--navy); color: #fff; text-align: center;
+                   padding: 5rem 2rem; }
+    .cta-section h2 { font-size: clamp(24px, 4vw, 40px); font-weight: 600;
+                      letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .cta-section p { font-size: 16px; color: rgba(255,255,255,0.6);
+                     max-width: 480px; margin: 0 auto 2.5rem; line-height: 1.7; }
+    .btn-white { background: #fff; color: var(--navy); font-size: 15px; font-weight: 500;
+                 padding: 13px 28px; border-radius: 10px; text-decoration: none;
+                 display: inline-block; }
+    .btn-white:hover { opacity: 0.92; }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 2rem;
+             text-align: center; font-size: 13px; color: var(--gray-400); }
+
+    @media (max-width: 768px) {
+      .steps-grid, .features-grid, .scoring-grid { grid-template-columns: 1fr; }
+      .nav-links .nav-link { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-logo">Recruitment</a>
+  <div class="nav-links">
+    <a href="#how-it-works" class="nav-link">How it works</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="/auth/login" class="nav-link">Sign in</a>
+    <a href="/auth/signup" class="btn-nav">Get started</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">🤖 Powered by Groq AI</div>
+  <h1>Screen CVs faster<br>with <span>AI-powered</span> recruitment</h1>
+  <p>Stop spending hours reading CVs. Recruitment Agent screens candidates against your job criteria in seconds, so your team can focus on the people that matter.</p>
+  <div class="hero-actions">
+    <a href="/auth/signup" class="btn-primary">Start for free →</a>
+    <a href="/auth/login" class="btn-secondary">Sign in</a>
+  </div>
+</div>
+
+<!-- How it works -->
+<div id="how-it-works" class="section">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">From CV to decision in minutes</h2>
+  <p class="section-sub">A fully automated pipeline that handles everything — you just make the final call.</p>
+
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <h3>Upload your job description</h3>
+      <p>Add a role and upload your JD. The AI extracts screening criteria automatically — required skills, experience, education.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <h3>CVs get screened automatically</h3>
+      <p>Send CVs via email or upload manually. The AI screens each one against your criteria, scores them out of 100, and flags conflicts.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <h3>You make the final call</h3>
+      <p>Review the AI's recommendation on a clean dashboard. Shortlist, hold, or reject with one click. Full audit trail included.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<div id="features" class="features-bg">
+  <div class="section">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything your recruitment team needs</h2>
+    <p class="section-sub">Built for SMEs who want enterprise-grade screening without the enterprise price tag.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>Dual AI screening</h3>
+        <p>A fast screener scores each candidate, then a second judge AI critiques the result for accuracy. Conflicts are flagged for your attention.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Confidence-based routing</h3>
+        <p>High confidence CVs go straight to screening. Medium confidence asks you to confirm the job match. Low confidence lands in your unmatched queue.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👤</div>
+        <h3>Human-in-the-loop</h3>
+        <p>Every candidate reaches a human before a final decision is made. The AI recommends — you decide. Override the AI anytime with a reason.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Full audit trail</h3>
+        <p>Every screening decision, score, and HR override is logged automatically. Export to Excel anytime for compliance and reporting.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📧</div>
+        <h3>Email intake</h3>
+        <p>Connect your recruitment inbox and CVs are processed automatically as they arrive. No manual uploads needed for email applications.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure & isolated</h3>
+        <p>Each organisation's data is fully isolated. JWT authentication, role-based access, and invite-only team management.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scoring model -->
+<div class="section">
+  <div class="section-label">Scoring model</div>
+  <h2 class="section-title">Transparent, weighted scoring</h2>
+  <p class="section-sub">Every candidate is scored across four criteria. You can see exactly why the AI made its recommendation.</p>
+
+  <div class="scoring-grid">
+    <div class="score-card">
+      <div class="score-pct">40%</div>
+      <div class="score-name">Required Skills</div>
+    </div>
+    <div class="score-card">
+      <div class="score-pct">40%</div>
+      <div class="score-name">Experience</div>
+    </div>
+    <div class="score-card">
+      <div class="score-pct">10%</div>
+      <div class="score-name">Preferred Skills</div>
+    </div>
+    <div class="score-card">
+      <div class="score-pct">10%</div>
+      <div class="score-name">Education</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Start screening smarter today</h2>
+  <p>Set up in 5 minutes. No credit card required. Your first candidate screened for free.</p>
+  <a href="/auth/signup" class="btn-white">Get started for free →</a>
+</div>
+
+<!-- Footer -->
+<footer>
+  © 2026 Recruitment Agent. Built for SMEs who hire smarter.
+</footer>
+
+</body>
+</html>

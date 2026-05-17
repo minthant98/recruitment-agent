@@ -88,8 +88,11 @@ def _get_kanban_data(job_id: str, org_id: str) -> dict:
         return {}
     job = job[0]
 
-    dept = db.table("departments").select("name").eq("id", job["dept_id"]).execute().data
-    job["dept_name"] = dept[0]["name"] if dept else "—"
+    if job.get("dept_id"):
+        dept = db.table("departments").select("name").eq("id", job["dept_id"]).execute().data
+        job["dept_name"] = dept[0]["name"] if dept else "—"
+    else:
+        job["dept_name"] = "—"
 
     # Fetch all runs for this job with candidate info and scores
     runs = db.table("pipeline_runs").select(
@@ -118,6 +121,7 @@ def _get_kanban_data(job_id: str, org_id: str) -> dict:
     score_map = {s["run_id"]: s["composite_score"] for s in scores}
 
     # Enrich runs
+    # Enrich runs
     for r in runs:
         cand = candidate_map.get(r["candidate_id"], {})
         r["candidate_name"] = cand.get("name", "Unknown")
@@ -128,6 +132,22 @@ def _get_kanban_data(job_id: str, org_id: str) -> dict:
             f'{int(r["confidence_score"] * 100)}%'
             if r.get("confidence_score") else "—"
         )
+
+    # Map "done" runs to correct kanban column using HITL decision
+    hitl_results = db.table("hitl_reviews").select(
+        "run_id, final_decision"
+    ).in_("run_id", run_ids).execute().data
+    hitl_map = {h["run_id"]: h["final_decision"] for h in hitl_results}
+
+    for r in runs:
+        if r["status"] == "done" and r["id"] in hitl_map:
+            decision = hitl_map[r["id"]]
+            if decision == "SHORTLIST_INTERVIEW":
+                r["status"] = "shortlisted"
+            elif decision == "HOLD":
+                r["status"] = "hold"
+            elif decision == "REJECT":
+                r["status"] = "rejected"
 
     # Group by status
     def _filter(status_vals):
@@ -176,7 +196,7 @@ async def new_job_page(
 async def create_job(
     request: Request,
     role_title: str = Form(...),
-    dept_id: str = Form(...),
+    dept_id: str = Form(default=""),
     employment_type: str = Form(default="Full-time"),
     jd_file: UploadFile = File(...),
     user: CurrentUser = Depends(require_user),
@@ -211,7 +231,7 @@ async def create_job(
         # Insert job_description
         jd_result = db.table("job_descriptions").insert({
             "org_id":           user.org_id,
-            "dept_id":          dept_id,
+            "dept_id":          dept_id if dept_id else None,
             "role_title":       structured.get("role_title", role_title),
             "seniority_level":  structured.get("seniority_level"),
             "required_years":   structured.get("required_years"),

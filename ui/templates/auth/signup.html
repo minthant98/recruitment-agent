@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign up — Recruitment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
+           min-height: 100vh; display: flex; align-items: center;
+           justify-content: center; padding: 1rem; }
+    .card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3;
+            padding: 2.5rem 2rem; width: 100%; max-width: 420px; }
+    .logo { font-size: 18px; font-weight: 500; color: #1a1a2e; margin-bottom: 0.4rem; }
+    .subtitle { font-size: 14px; color: #888; margin-bottom: 2rem; }
+    .field { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 6px; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; color: #1a1a1a; background: #fafafa;
+            transition: border-color 0.15s; outline: none; font-family: inherit; }
+    input:focus { border-color: #1a1a2e; background: #fff; }
+    .error-box { background: #fff0f0; border: 1px solid #fcc; border-radius: 8px;
+                 padding: 10px 14px; font-size: 13px; color: #c0392b; margin-bottom: 1.25rem; }
+    .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+    button[type="submit"] { width: 100%; padding: 11px; background: #1a1a2e; color: #fff;
+            border: none; border-radius: 8px; font-size: 14px; font-weight: 500;
+            cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+    button[type="submit"]:hover { opacity: 0.88; }
+    .footer { text-align: center; margin-top: 1.5rem; font-size: 13px; color: #888; }
+    .footer a { color: #1a1a2e; text-decoration: none; font-weight: 500; }
+    .footer a:hover { text-decoration: underline; }
+    .divider { border: none; border-top: 1px solid #f0f0ee; margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Recruitment</div>
+    <div class="subtitle">Create your team's account</div>
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/auth/signup">
+
+      <div class="field">
+        <label for="company_name">Company name</label>
+        <input type="text" id="company_name" name="company_name"
+               placeholder="e.g. Acme Corp" required autofocus>
+      </div>
+
+      <div class="field">
+        <label for="email">Work email</label>
+        <input type="email" id="email" name="email"
+               placeholder="you@company.com" required>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               minlength="8" required placeholder="At least 8 characters">
+        <div class="hint">Minimum 8 characters</div>
+      </div>
+
+      <button type="submit">Create account</button>
+    </form>
+
+    <hr class="divider">
+    <div class="footer">
+      Already have an account? <a href="/auth/login">Sign in</a>
+    </div>
+  </div>
+</body>
+</html>

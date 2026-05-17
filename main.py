@@ -139,7 +139,8 @@ def get_initial_state(email_data: dict) -> dict:
         "final_decision":       "",
         "error":                None,
         "error_node":           None,
-        "org_id": "00000000-0000-0000-0000-000000000001",   # ← for email intake, set this from org lookup later
+        "org_id": "00000000-0000-0000-0000-000000000001",  
+        "source": "EMAIL",# ← for email intake, set this from org lookup later
     }
 
 
