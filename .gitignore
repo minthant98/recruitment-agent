@@ -55,4 +55,5 @@ attachments/
 jds/
 
 # ── LangSmith ─────────────────────────────────────────
-.langgraph/
+.langgraph/deploy.sh
+deploy.sh
