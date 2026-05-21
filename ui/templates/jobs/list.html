@@ -10,7 +10,6 @@
     body { font-family: 'DM Sans', -apple-system, sans-serif; background: #f5f5f3;
            color: #1a1a1a; min-height: 100vh; }
 
-    /* Nav */
     nav { background: #1a1a2e; padding: 0 2rem; height: 56px;
           display: flex; align-items: center; justify-content: space-between; }
     .nav-logo { color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
@@ -19,27 +18,27 @@
     .nav-links a:hover, .nav-links a.active { color: #fff; }
     .nav-user { color: #888; font-size: 13px; }
 
-    /* Page */
     .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
     .page-header { display: flex; align-items: center;
                    justify-content: space-between; margin-bottom: 2rem; }
     .page-title { font-size: 22px; font-weight: 500; }
 
-    /* Button */
     .btn-primary { background: #1a1a2e; color: #fff; border: none;
                    padding: 9px 18px; border-radius: 8px; font-size: 14px;
                    font-weight: 500; cursor: pointer; text-decoration: none;
                    display: inline-flex; align-items: center; gap: 6px; }
     .btn-primary:hover { opacity: 0.88; }
 
-    /* Jobs grid */
     .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
                  gap: 1rem; }
 
+    /* Card is now a div, inner link handles navigation */
     .job-card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3;
-                padding: 1.25rem 1.5rem; text-decoration: none; color: inherit;
-                display: block; transition: border-color 0.15s, box-shadow 0.15s; }
+                padding: 1.25rem 1.5rem; display: block;
+                transition: border-color 0.15s, box-shadow 0.15s;
+                position: relative; }
     .job-card:hover { border-color: #1a1a2e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .job-card-link { text-decoration: none; color: inherit; display: block; }
 
     .job-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
     .job-dept { font-size: 13px; color: #888; margin-bottom: 1rem; }
@@ -53,10 +52,48 @@
                   justify-content: space-between; margin-top: 1rem;
                   padding-top: 1rem; border-top: 1px solid #f0f0ee; }
 
+    /* Status badges */
     .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
-    .badge-open { background: #e8f5e9; color: #2e7d32; }
-    .badge-closed { background: #fce4ec; color: #c62828; }
-    .badge-pending { background: #fff8e1; color: #f57f17; }
+    .badge-open       { background: #e8f5e9; color: #2e7d32; }
+    .badge-in_progress { background: #e3f2fd; color: #1565c0; }
+    .badge-filled     { background: #f3e5f5; color: #6a1b9a; }
+    .badge-closed     { background: #f5f5f5; color: #757575; }
+
+    /* Status dropdown */
+    .status-wrap { position: relative; }
+    .status-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      padding: 0; font-family: inherit;
+    }
+    .status-chevron { font-size: 10px; color: #aaa; }
+    .status-dropdown {
+      display: none; position: absolute; bottom: calc(100% + 6px); left: 0;
+      background: #fff; border: 1px solid #e5e5e3; border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.10); z-index: 100;
+      min-width: 160px; overflow: hidden;
+    }
+    .status-dropdown.open { display: block; }
+    .status-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px; font-size: 13px; cursor: pointer;
+      transition: background 0.1s; border: none; background: none;
+      width: 100%; text-align: left; font-family: inherit;
+    }
+    .status-option:hover { background: #f5f5f3; }
+    .status-option.current { background: #f0f0ee; font-weight: 500; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-open        { background: #2e7d32; }
+    .dot-in_progress { background: #1565c0; }
+    .dot-filled      { background: #6a1b9a; }
+    .dot-closed      { background: #757575; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a2e;
+             color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px;
+             display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast.show { display: block; }
+    .toast.error { background: #c62828; }
 
     .empty { text-align: center; padding: 4rem 2rem; color: #888; }
     .empty-icon { font-size: 48px; margin-bottom: 1rem; }
@@ -84,32 +121,61 @@
   {% if jobs %}
   <div class="jobs-grid">
     {% for job in jobs %}
-    <a href="/jobs/{{ job.id }}" class="job-card">
-      <div class="job-title">{{ job.role_title }}</div>
-      <div class="job-dept">{{ job.dept_name }}
-        {% if job.employment_type %} · {{ job.employment_type }}{% endif %}
-      </div>
+    <div class="job-card">
 
-      <div class="job-meta">
-        <div class="meta-item">
-          <span class="meta-num">{{ job.total_cvs }}</span>
-          <span class="meta-label">total CVs</span>
+      <!-- Clicking title/meta navigates to kanban -->
+      <a href="/jobs/{{ job.id }}" class="job-card-link">
+        <div class="job-title">{{ job.role_title }}</div>
+        <div class="job-dept">{{ job.dept_name }}
+          {% if job.employment_type %} · {{ job.employment_type }}{% endif %}
         </div>
-        <div class="meta-item">
-          <span class="meta-num" style="color: {% if job.pending_cvs > 0 %}#f57f17{% else %}#1a1a2e{% endif %}">
-            {{ job.pending_cvs }}
-          </span>
-          <span class="meta-label">needs review</span>
+        <div class="job-meta">
+          <div class="meta-item">
+            <span class="meta-num">{{ job.total_cvs }}</span>
+            <span class="meta-label">total CVs</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-num" style="color: {% if job.pending_cvs > 0 %}#f57f17{% else %}#1a1a2e{% endif %}">
+              {{ job.pending_cvs }}
+            </span>
+            <span class="meta-label">needs review</span>
+          </div>
         </div>
-      </div>
+      </a>
 
+      <!-- Footer: status dropdown + date -->
       <div class="job-footer">
-        <span class="badge badge-{{ job.status | lower }}">{{ job.status }}</span>
-        <span style="font-size:12px; color:#aaa">
-          {{ job.created_at[:10] }}
-        </span>
+        <div class="status-wrap" onclick="event.stopPropagation()">
+          <button class="status-btn" onclick="toggleDropdown('dd-{{ job.id }}')">
+            <span class="badge badge-{{ job.status | lower | replace(' ', '_') }}">
+              {{ job.status | replace('_', ' ') | title }}
+            </span>
+            <span class="status-chevron">▼</span>
+          </button>
+
+          <div class="status-dropdown" id="dd-{{ job.id }}">
+            {% set statuses = [
+              ('OPEN',        'Open',        'open'),
+              ('IN_PROGRESS', 'In progress', 'in_progress'),
+              ('FILLED',      'Filled',      'filled'),
+              ('CLOSED',      'Closed',      'closed'),
+            ] %}
+            {% for val, label, cls in statuses %}
+            <button
+              class="status-option {% if job.status == val %}current{% endif %}"
+              onclick="updateStatus('{{ job.id }}', '{{ val }}', '{{ label }}', '{{ cls }}', 'dd-{{ job.id }}')"
+            >
+              <span class="status-dot dot-{{ cls }}"></span>
+              {{ label }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <span style="font-size:12px; color:#aaa">{{ job.created_at[:10] }}</span>
       </div>
-    </a>
+
+    </div>
     {% endfor %}
   </div>
 
@@ -123,6 +189,61 @@
   </div>
   {% endif %}
 </div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toggleDropdown(id) {
+  document.querySelectorAll('.status-dropdown.open').forEach(d => {
+    if (d.id !== id) d.classList.remove('open')
+  })
+  document.getElementById(id).classList.toggle('open')
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', () => {
+  document.querySelectorAll('.status-dropdown.open').forEach(d => d.classList.remove('open'))
+})
+
+async function updateStatus(jobId, newStatus, label, cls, dropdownId) {
+  document.getElementById(dropdownId).classList.remove('open')
+
+  try {
+    const resp = await fetch(`/jobs/${jobId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
+
+    if (!resp.ok) {
+      showToast('Failed to update status.', 'error')
+      return
+    }
+
+    // Update badge in place without page reload
+    const btn  = document.querySelector(`#dd-${jobId}`).previousElementSibling
+    const badge = btn.querySelector('.badge')
+    badge.className = `badge badge-${cls}`
+    badge.textContent = label
+
+    // Update current marker in dropdown
+    document.querySelectorAll(`#dd-${jobId} .status-option`).forEach(opt => {
+      opt.classList.toggle('current', opt.textContent.trim() === label)
+    })
+
+    showToast(`Status updated to ${label}`)
+  } catch (e) {
+    showToast('Could not connect.', 'error')
+  }
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className = 'toast show' + (type ? ' ' + type : '')
+  setTimeout(() => t.className = 'toast', 3000)
+}
+</script>
 
 </body>
 </html>

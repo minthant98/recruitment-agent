@@ -21,6 +21,7 @@
 .badge-orange { background: #fff3e0; color: #e65100; }
 .badge-purple { background: #f3e5f5; color: #6a1b9a; }
 .badge-navy   { background: #e8eaf6; color: #283593; }
+.badge-green  { background: #e8f5e9; color: #2e7d32; }
 .queue-list { display: flex; flex-direction: column; gap: 8px; }
 .queue-item { background: #fff; border-radius: 10px; border: 1px solid #e5e5e3;
               padding: 14px 16px; display: flex; align-items: center;
@@ -28,21 +29,30 @@
 .queue-item:hover { border-color: #1a1a2e; }
 .queue-item.warn  { border-left: 3px solid #ff9800; }
 .queue-item.alert { border-left: 3px solid #9c27b0; }
+.queue-item.shortlisted { border-left: 3px solid #2e7d32; }
 .item-avatar { width: 38px; height: 38px; border-radius: 50%; background: #e8eaf6;
                display: flex; align-items: center; justify-content: center;
                font-size: 14px; font-weight: 500; color: #283593; flex-shrink: 0; }
 .item-body { flex: 1; min-width: 0; }
 .item-name { font-size: 14px; font-weight: 500; }
 .item-meta { font-size: 12px; color: #888; margin-top: 2px; }
-.item-right { text-align: right; flex-shrink: 0; }
+.item-right { text-align: right; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
 .item-score { font-size: 16px; font-weight: 500; }
 .item-age   { font-size: 12px; color: #aaa; margin-top: 2px; }
 .item-action { background: #1a1a2e; color: #fff; border: none; padding: 6px 14px;
                border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
                white-space: nowrap; text-decoration: none; display: inline-block; }
+.item-action.interview { background: #2e7d32; }
+.item-action.interview:hover { background: #1b5e20; }
+.item-action:disabled { opacity: 0.5; cursor: not-allowed; }
 .empty-queue { background: #fafaf8; border-radius: 10px; border: 1px dashed #ddd;
                padding: 1.5rem; text-align: center; color: #aaa; font-size: 14px; }
 .empty-queue span { font-size: 20px; display: block; margin-bottom: 6px; }
+.toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a2e; color: #fff;
+         padding: 12px 20px; border-radius: 8px; font-size: 13px; display: none;
+         z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.toast.show { display: block; }
+.toast.error { background: #c62828; }
 {% endblock %}
 
 {% block content %}
@@ -73,6 +83,7 @@
 
   <div class="queues">
 
+    <!-- Needs review -->
     <div class="queue-section">
       <div class="queue-header">
         <span class="queue-title">Needs your review</span>
@@ -81,7 +92,7 @@
       <div class="queue-list">
         {% if needs_review %}
           {% for r in needs_review %}
-          <a href="/review/{{ r.id }}" class="queue-item">
+          <div class="queue-item">
             <div class="item-avatar">{{ r.candidate_name[0] | upper if r.candidate_name else '?' }}</div>
             <div class="item-body">
               <div class="item-name">{{ r.candidate_name }}</div>
@@ -89,13 +100,16 @@
             </div>
             <div class="item-right">
               {% if r.score is not none %}
-              <div class="item-score" style="color: {% if r.score >= 70 %}#2e7d32{% elif r.score >= 50 %}#e65100{% else %}#c62828{% endif %}">
-                {{ r.score | int }}
+              <div>
+                <div class="item-score" style="color: {% if r.score >= 70 %}#2e7d32{% elif r.score >= 50 %}#e65100{% else %}#c62828{% endif %}">
+                  {{ r.score | int }}
+                </div>
+                <div class="item-age">{{ r.age }}</div>
               </div>
               {% endif %}
-              <div class="item-age">{{ r.age }}</div>
+              <a href="/review/{{ r.id }}" class="item-action">Review</a>
             </div>
-          </a>
+          </div>
           {% endfor %}
         {% else %}
           <div class="empty-queue">
@@ -104,6 +118,42 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- Shortlisted — ready to interview -->
+    {% if shortlisted %}
+    <div class="queue-section">
+      <div class="queue-header">
+        <span class="queue-title">Shortlisted — ready to interview</span>
+        <span class="queue-badge badge-green">{{ shortlisted | length }}</span>
+      </div>
+      <div class="queue-list">
+        {% for r in shortlisted %}
+        <div class="queue-item shortlisted">
+          <div class="item-avatar" style="background:#e8f5e9;color:#2e7d32">
+            {{ r.candidate_name[0] | upper if r.candidate_name else '?' }}
+          </div>
+          <div class="item-body">
+            <div class="item-name">{{ r.candidate_name }}</div>
+            <div class="item-meta">{{ r.role_title }} · Score: {{ r.score | int if r.score is not none else '—' }}</div>
+          </div>
+          <div class="item-right">
+            <div class="item-age">{{ r.age }}</div>
+            {% if r.interview_launched %}
+              <span class="item-action" style="background:#888;cursor:default">Interview sent</span>
+            {% else %}
+              <button
+                class="item-action interview"
+                onclick="launchInterview('{{ r.id }}', this)"
+              >
+                Launch interview
+              </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
     {% if needs_confirmation %}
     <div class="queue-section">
@@ -157,4 +207,34 @@
 
   </div>
 </div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+async function launchInterview(runId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Launching…';
+
+  // Fire and don't wait — question generation takes time
+  fetch(`/launch-interview/${runId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  }).catch(() => {});
+
+  // Redirect after 2 seconds regardless
+  setTimeout(() => {
+    btn.textContent = 'Interview sent';
+    btn.style.background = '#888';
+    window.location.href = 'http://localhost:3001';
+  }, 2000);
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 4000);
+}
+</script>
 {% endblock %}

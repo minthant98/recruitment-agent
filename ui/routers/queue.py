@@ -14,7 +14,7 @@ Mount in ui/app.py:
 """
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from auth.dependencies import CurrentUser, require_user
@@ -205,3 +205,117 @@ async def assign_job(
         })
 
     return RedirectResponse(url="/dashboard", status_code=302)
+
+
+# ── Interview launch ──────────────────────────────────────────────
+
+@router.post("/launch-interview/{run_id}")
+async def launch_interview(
+    run_id: str,
+    user: CurrentUser = Depends(require_user),
+):
+    """
+    HR launches an AI interview for a shortlisted candidate.
+    Called from the HITL review screen after a candidate is shortlisted.
+    Calls the Interview Agent API, then redirects HR to the dashboard.
+    """
+    import os
+    from tools.interview_client import launch_interview as _launch, get_hr_dashboard_url
+
+    db = get_db()
+
+    # ── Load pipeline run ─────────────────────────────────────────
+    run_rows = db.table("pipeline_runs") \
+        .select("*") \
+        .eq("id", run_id) \
+        .eq("org_id", user.org_id) \
+        .execute().data
+
+    if not run_rows:
+        return JSONResponse({"error": "Pipeline run not found."}, status_code=404)
+    run = run_rows[0]
+
+    # ── Load candidate ────────────────────────────────────────────
+    cand_rows = db.table("candidates") \
+        .select("id, name, email, raw_cv_text") \
+        .eq("id", run["candidate_id"]) \
+        .execute().data
+
+    if not cand_rows:
+        return JSONResponse({"error": "Candidate not found."}, status_code=404)
+    candidate = cand_rows[0]
+
+    # ── Load job description ──────────────────────────────────────
+    job_rows = db.table("job_descriptions") \
+        .select("id, role_title, raw_text") \
+        .eq("id", run["jd_id"]) \
+        .execute().data
+
+    if not job_rows:
+        return JSONResponse({"error": "Job not found."}, status_code=404)
+    job = job_rows[0]
+
+    # ── Load screening gaps from screening_results ────────────────
+    screening_rows = db.table("screening_results") \
+        .select("weaknesses") \
+        .eq("run_id", run_id) \
+        .execute().data
+
+    screening_gaps = []
+    if screening_rows and screening_rows[0].get("weaknesses"):
+        raw_weaknesses = screening_rows[0]["weaknesses"]
+        # weaknesses is stored as JSONB list of strings or dicts
+        if isinstance(raw_weaknesses, list):
+            for w in raw_weaknesses:
+                if isinstance(w, str):
+                    screening_gaps.append({"skill": w, "description": w})
+                elif isinstance(w, dict):
+                    screening_gaps.append(w)
+
+    # ── Load org name ─────────────────────────────────────────────
+    org_rows = db.table("organizations") \
+        .select("name") \
+        .eq("id", user.org_id) \
+        .execute().data
+    company_name = org_rows[0]["name"] if org_rows else "Our Company"
+
+    # ── Call Interview Agent ──────────────────────────────────────
+    try:
+        result = await _launch(
+            candidate_id=candidate["id"],
+            job_id=job["id"],
+            org_id=user.org_id,
+            candidate_name=candidate["name"],
+            candidate_email=candidate.get("email", ""),
+            job_title=job["role_title"],
+            cv_text=candidate.get("raw_cv_text", ""),
+            jd_text=job.get("raw_text", ""),
+            screening_gaps=screening_gaps,
+            recruiter_name=user.email,
+            company_name=company_name,
+            questions_target=5,
+        )
+    except ValueError as e:
+        # Active session already exists
+        return JSONResponse({"error": str(e)}, status_code=409)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"Failed to launch interview: {str(e)}"},
+            status_code=500
+        )
+
+    # ── Log audit ─────────────────────────────────────────────────
+    log_audit(
+        run_id=run_id,
+        node_name="interview_launch",
+        action="interview_launched",
+        payload={
+            "session_id":    result.get("session_id"),
+            "interview_url": result.get("interview_url"),
+            "launched_by":   user.email,
+        },
+    )
+
+    # ── Redirect HR to dashboard ──────────────────────────────────
+    dashboard_url = get_hr_dashboard_url()
+    return RedirectResponse(url=dashboard_url, status_code=302)
